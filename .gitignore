@@ -1,0 +1,86 @@
+# ==============================
+# Gradle
+# ==============================
+
+.gradle/
+build/
+**/build/
+out/
+
+# Gradle local configuration
+gradle-app.setting
+!gradle-wrapper.jar
+
+# ==============================
+# Kotlin / JVM
+# ==============================
+
+*.class
+*.jar
+*.war
+*.ear
+hs_err_pid*
+replay_pid*
+
+# Kotlin compiler
+*.kotlin_module
+
+# ==============================
+# IntelliJ IDEA
+# ==============================
+
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# ==============================
+# macOS
+# ==============================
+
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# ==============================
+# Logs
+# ==============================
+
+*.log
+logs/
+
+# ==============================
+# Test reports and coverage
+# ==============================
+
+**/test-results/
+**/reports/
+**/jacoco/
+*.exec
+*.hprof
+
+# ==============================
+# Environment / secrets
+# ==============================
+
+.env
+.env.*
+!.env.example
+
+# ==============================
+# Temporary files
+# ==============================
+
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# ==============================
+# Local application data
+# ==============================
+
+/local/
+.cache/

@@ -84,4 +84,60 @@ class TemperatureTest {
             TemperatureDelta.of(Double.POSITIVE_INFINITY, TemperatureUnit.KELVIN)
         }
     }
+
+
+    @Test
+    fun `should convert Fahrenheit to Kelvin`() {
+        val temperature = Temperature.of(32.0, TemperatureUnit.FAHRENHEIT)
+
+        assertEquals(273.15, temperature.kelvin, 1e-10)
+    }
+
+    @Test
+    fun `should convert Kelvin to Fahrenheit`() {
+        val temperature = Temperature.fromKelvin(273.15)
+
+        assertEquals(
+            32.0,
+            temperature.inUnit(TemperatureUnit.FAHRENHEIT),
+            1e-10
+        )
+    }
+
+    @Test
+    fun `should add temperature deltas`() {
+        val first = TemperatureDelta.of(10.0, TemperatureUnit.CELSIUS)
+        val second = TemperatureDelta.of(5.0, TemperatureUnit.CELSIUS)
+
+        assertEquals(15.0, (first + second).kelvin, 1e-10)
+    }
+
+    @Test
+    fun `should subtract temperature deltas`() {
+        val first = TemperatureDelta.of(10.0, TemperatureUnit.CELSIUS)
+        val second = TemperatureDelta.of(15.0, TemperatureUnit.CELSIUS)
+
+        assertEquals(-5.0, (first - second).kelvin, 1e-10)
+    }
+
+    @Test
+    fun `should convert Fahrenheit delta to Celsius delta`() {
+        val delta = TemperatureDelta.of(18.0, TemperatureUnit.FAHRENHEIT)
+
+        assertEquals(
+            10.0,
+            delta.inUnit(TemperatureUnit.CELSIUS),
+            1e-10
+        )
+    }
+
+//    @Test
+//    fun `should reject temperature delta division by zero`() {
+//        val delta = TemperatureDelta.of(10.0, TemperatureUnit.KELVIN)
+//
+//        assertFailsWith<IllegalArgumentException> {
+//            delta / 0.0
+//        }
+//    }
+
 }

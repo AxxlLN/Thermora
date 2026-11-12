@@ -56,13 +56,13 @@ object StandardUnits {
     )
 
     // Temperature
-    val KELVIN = MeasurementUnit(
-        "K", PhysicalDimension.TEMPERATURE, 1.0
-    )
-
-    val CELSIUS = MeasurementUnit(
-        "°C", PhysicalDimension.TEMPERATURE, 1.0, 273.15
-    )
+//    val KELVIN = MeasurementUnit(
+//        "K", PhysicalDimension.TEMPERATURE, 1.0
+//    )
+//
+//    val CELSIUS = MeasurementUnit(
+//        "°C", PhysicalDimension.TEMPERATURE, 1.0, 273.15
+//    )
 
     // Pressure
     val PASCAL = MeasurementUnit(

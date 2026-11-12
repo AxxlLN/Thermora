@@ -1,3 +1,4 @@
+
 package com.thermora.foundation.units.unit
 
 import com.thermora.foundation.units.dimension.PhysicalDimension
@@ -37,4 +38,30 @@ data class MeasurementUnit(
 
         return result
     }
+
+    operator fun times(other: MeasurementUnit): MeasurementUnit {
+        require(isLinear() && other.isLinear()) {
+            "Affine units cannot participate in unit multiplication"
+        }
+
+        return MeasurementUnit(
+            symbol = "$symbol·${other.symbol}",
+            dimension = dimension * other.dimension,
+            scaleToBase = scaleToBase * other.scaleToBase
+        )
+    }
+
+    operator fun div(other: MeasurementUnit): MeasurementUnit {
+        require(isLinear() && other.isLinear()) {
+            "Affine units cannot participate in unit division"
+        }
+
+        return MeasurementUnit(
+            symbol = "$symbol/${other.symbol}",
+            dimension = dimension / other.dimension,
+            scaleToBase = scaleToBase / other.scaleToBase
+        )
+    }
+
+    private fun isLinear(): Boolean = offsetToBase == 0.0
 }

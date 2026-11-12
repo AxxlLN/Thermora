@@ -53,6 +53,15 @@ data class PhysicalDimension(
         val SPECIFIC_HEAT_CAPACITY = ENERGY / MASS / TEMPERATURE
 
         val HEAT_FLUX = POWER / AREA
+
+        val VOLUMETRIC_FLOW = VOLUME / TIME
+        val KINEMATIC_VISCOSITY = AREA / TIME
+
+        val HEAT_TRANSFER_COEFFICIENT =
+            POWER / AREA / TEMPERATURE
+
+        val THERMAL_RESISTANCE =
+            TEMPERATURE / POWER
         val PRESSURE = PhysicalDimension(
             length = -1,
             mass = 1,

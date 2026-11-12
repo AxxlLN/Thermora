@@ -115,4 +115,36 @@ object StandardUnits {
         PhysicalDimension.HEAT_FLUX,
         1.0
     )
+
+    // Fluid mechanics
+    val METER_PER_SECOND = MeasurementUnit(
+        "m/s",
+        PhysicalDimension.VELOCITY,
+        1.0
+    )
+
+    val CUBIC_METER_PER_SECOND = MeasurementUnit(
+        "m³/s",
+        PhysicalDimension.VOLUMETRIC_FLOW,
+        1.0
+    )
+
+    val SQUARE_METER_PER_SECOND = MeasurementUnit(
+        "m²/s",
+        PhysicalDimension.KINEMATIC_VISCOSITY,
+        1.0
+    )
+
+    // Heat transfer
+    val WATT_PER_SQUARE_METER_KELVIN = MeasurementUnit(
+        "W/(m²·K)",
+        PhysicalDimension.HEAT_TRANSFER_COEFFICIENT,
+        1.0
+    )
+
+    val KELVIN_PER_WATT = MeasurementUnit(
+        "K/W",
+        PhysicalDimension.THERMAL_RESISTANCE,
+        1.0
+    )
 }

@@ -133,4 +133,16 @@ class QuantityTest {
             Quantity(298.15, kelvin)
         }
     }
+
+    @Test
+    fun `should correctly multiply quantities with scaled units`() {
+        val first = Quantity(1000.0, StandardUnits.MILLIMETER)
+        val second = Quantity(1000.0, StandardUnits.MILLIMETER)
+
+        val result = first * second
+
+        val converted = result.convertTo(StandardUnits.SQUARE_METER)
+
+        assertEquals(1.0, converted.value, 1e-10)
+    }
 }

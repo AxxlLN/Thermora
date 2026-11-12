@@ -18,8 +18,11 @@ data class Quantity(
         }
 
         require(unit.dimension != PhysicalDimension.TEMPERATURE) {
-            "Absolute temperature and temperature differences " +
-                    "must use specialized types"
+            "Absolute temperature and temperature differences must use specialized types"
+        }
+
+        require(unit.toBase(value).isFinite()) {
+            "Quantity base value must be finite"
         }
     }
 
@@ -62,11 +65,16 @@ data class Quantity(
             unit = unit * other.unit
         )
 
-    operator fun div(other: Quantity): Quantity =
-        Quantity(
+    operator fun div(other: Quantity): Quantity {
+        require(other.value != 0.0) {
+            "Cannot divide quantity by zero"
+        }
+
+        return Quantity(
             value = value / other.value,
             unit = unit / other.unit
         )
+    }
 
     operator fun times(scalar: Double): Quantity {
         require(scalar.isFinite())

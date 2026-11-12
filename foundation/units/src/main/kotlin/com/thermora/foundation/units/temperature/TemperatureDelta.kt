@@ -1,6 +1,6 @@
 package com.thermora.foundation.units.temperature
 
-class TemperatureDelta private constructor(
+data class TemperatureDelta private constructor(
     val kelvin: Double
 ) {
 

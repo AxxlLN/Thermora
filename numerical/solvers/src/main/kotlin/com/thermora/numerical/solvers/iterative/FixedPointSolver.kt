@@ -3,6 +3,7 @@ package com.thermora.numerical.solvers.iterative
 import com.thermora.numerical.solvers.options.IterativeSolverOptions
 import com.thermora.numerical.solvers.result.SolverResult
 import com.thermora.numerical.solvers.result.SolverStatus
+import java.math.BigDecimal
 import kotlin.math.abs
 import kotlin.math.max
 
@@ -13,7 +14,6 @@ object FixedPointSolver {
         update: (Double) -> Double,
         options: IterativeSolverOptions = IterativeSolverOptions()
     ): SolverResult<Double> {
-
         if (!initial.isFinite()) {
             return SolverResult(
                 value = null,
@@ -21,12 +21,14 @@ object FixedPointSolver {
             )
         }
 
+        val absoluteTolerance = BigDecimal(options.absoluteTolerance)
+        val relativeTolerance = BigDecimal(options.relativeTolerance)
+        val relaxationFactor = BigDecimal(options.relaxationFactor)
         var current = initial
-        var residual = Double.POSITIVE_INFINITY
-        var step = Double.POSITIVE_INFINITY
+        var residualNorm: Double? = null
+        var stepNorm: Double? = null
 
         repeat(options.maxIterations) { index ->
-
             val target = update(current)
 
             if (!target.isFinite()) {
@@ -34,23 +36,22 @@ object FixedPointSolver {
                     value = current,
                     status = SolverStatus.NON_FINITE,
                     iterations = index,
-                    residualNorm = residual.takeIf { it.isFinite() },
-                    stepNorm = step.takeIf { it.isFinite() }
+                    residualNorm = residualNorm,
+                    stepNorm = stepNorm
                 )
             }
 
-            val next = current +
-                    options.relaxationFactor * (target - current)
-
-            if (!next.isFinite()) {
-                return SolverResult(
-                    value = current,
-                    status = SolverStatus.NON_FINITE,
-                    iterations = index + 1
-                )
+            val previous = BigDecimal(current)
+            val next = when {
+                options.relaxationFactor == 1.0 -> target
+                current == target -> current
+                else -> previous.add(
+                    BigDecimal(target).subtract(previous).multiply(relaxationFactor)
+                ).toDouble()
             }
-
-            step = abs(next - current)
+            val state = BigDecimal(next)
+            val step = state.subtract(previous).abs()
+            stepNorm = step.toDouble().takeIf { it.isFinite() }
             current = next
 
             val nextTarget = update(current)
@@ -60,36 +61,33 @@ object FixedPointSolver {
                     value = current,
                     status = SolverStatus.NON_FINITE,
                     iterations = index + 1,
-                    stepNorm = step
+                    stepNorm = stepNorm
                 )
             }
 
-            residual = abs(nextTarget - current)
-
-            val tolerance =
-                options.absoluteTolerance +
-                        options.relativeTolerance * max(
-                    abs(current),
-                    abs(nextTarget)
-                )
+            val residual = BigDecimal(nextTarget).subtract(state).abs()
+            residualNorm = residual.toDouble().takeIf { it.isFinite() }
+            val tolerance = absoluteTolerance.add(
+                relativeTolerance.multiply(BigDecimal(max(abs(current), abs(nextTarget))))
+            )
 
             if (residual <= tolerance && step <= tolerance) {
                 return SolverResult(
                     value = current,
                     status = SolverStatus.CONVERGED,
                     iterations = index + 1,
-                    residualNorm = residual,
-                    stepNorm = step
+                    residualNorm = residualNorm,
+                    stepNorm = stepNorm
                 )
             }
         }
 
-            return SolverResult(
-                value = current,
-                status = SolverStatus.MAX_ITERATIONS,
-                iterations = options.maxIterations,
-                residualNorm = residual.takeIf { it.isFinite() },
-                stepNorm = step.takeIf { it.isFinite() }
-            )
-        }
+        return SolverResult(
+            value = current,
+            status = SolverStatus.MAX_ITERATIONS,
+            iterations = options.maxIterations,
+            residualNorm = residualNorm,
+            stepNorm = stepNorm
+        )
     }
+}

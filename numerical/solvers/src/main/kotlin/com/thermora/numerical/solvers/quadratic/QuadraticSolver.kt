@@ -8,22 +8,6 @@ import java.math.RoundingMode
 import kotlin.math.abs
 import kotlin.math.sqrt
 
-/**
- * Solves the real polynomial whose coefficients are the exact supplied binary64 values.
- * Signed coefficient zeros are mathematical zeros; returned zero roots are canonical +0.0.
- * Degree and discriminant sign are classified exactly, without an epsilon. None therefore
- * means no real roots, never an arithmetic failure. Two describes two distinct mathematical
- * roots even when both round to the same Double.
- *
- * Roots are binary64 approximations, not guaranteed correctly rounded. The stable q formula
- * avoids subtractive cancellation. An exact decimal discriminant prevents both cancellation
- * and exponent loss; extreme root calculations use 80 significant decimal digits. Conversion
- * may underflow to zero (the nearest representable approximation). If either root overflows
- * to infinity, the entire result is NON_FINITE, without a partial solution.
- *
- * BigDecimal(Double), rather than valueOf(Double), preserves the exact binary64 coefficient.
- * Decimal arithmetic is part of the JDK; no external numerical dependency is required.
- */
 object QuadraticSolver {
     private val rootContext = MathContext(80, RoundingMode.HALF_EVEN)
     private val two = BigDecimal(2)
@@ -45,7 +29,6 @@ object QuadraticSolver {
         val ad = BigDecimal(a)
         val bd = BigDecimal(b)
         val cd = BigDecimal(c)
-        // No MathContext here: even the sign of an almost-cancelled discriminant is exact.
         val discriminant = bd.multiply(bd).subtract(four.multiply(ad).multiply(cd))
         if (discriminant.signum() < 0) return success(QuadraticRoots.None)
         if (discriminant.signum() == 0) {
@@ -55,7 +38,6 @@ object QuadraticSolver {
         val d = discriminant.toDouble()
         if (d.isFinite() && d >= java.lang.Double.MIN_NORMAL) {
             val sqrtD = sqrt(d)
-            // Halve before adding: b + sign(b)*sqrt(D) itself could overflow.
             val q = -0.5 * b - 0.5 * Math.copySign(sqrtD, b)
             val first = q / a
             val second = c / q
@@ -64,9 +46,6 @@ object QuadraticSolver {
             }
         }
 
-        // No shared normalization: it could erase a small but essential coefficient.
-        // q has no cancellation, so 80 digits suffice for highly accurate binary64 estimates
-        // even with thousands of binary exponents between the input coefficients.
         val sqrtD = discriminant.sqrt(rootContext)
         val magnitude = bd.abs().add(sqrtD, rootContext).divide(two, rootContext)
         val q = if (b < 0.0) magnitude else magnitude.negate()

@@ -9,5 +9,7 @@ include(
     ":foundation:units",
     ":foundation:domain",
     ":calculation:api",
-    ":calculation:engine"
+    ":calculation:engine",
+    ":numerical:solvers"
+
 )

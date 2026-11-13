@@ -7,6 +7,5 @@ rootProject.name = "Thermora"
 include(
     ":foundation:common",
     ":foundation:units",
-    "foundation:domain"
+    ":foundation:domain"
 )
-include("foundation:domain")

@@ -272,6 +272,7 @@ thermora/
 │
 ├── settings.gradle.kts
 ├── build.gradle.kts
+├── gradle.properties
 │
 ├── foundation/
 │   ├── common/
@@ -280,9 +281,15 @@ thermora/
 │
 ├── calculation/
 │   ├── api/
-│   └── engine/
+│   ├── engine/
+│   ├── validation/
+│   └── registry/
 │
 ├── numerical/
+│   ├── linear-algebra/
+│   ├── optimization/
+│   ├── interpolation/
+│   └── solvers/
 │
 ├── models/
 │   ├── sealed-housing-legacy/
@@ -296,6 +303,31 @@ thermora/
 │   ├── internal-mixing-improved/
 │   └── external-cooling-improved/
 │
+├── intelligence/
+│   │
+│   ├── api/
+│   │
+│   ├── hardware/
+│   │   ├── detection/
+│   │   ├── profiling/
+│   │   └── capability-evaluation/
+│   │
+│   ├── runtime/
+│   │   ├── model-manager/
+│   │   ├── execution-manager/
+│   │   └── resource-manager/
+│   │
+│   ├── inference/
+│   │   ├── cpu/
+│   │   └── gpu/
+│   │
+│   ├── models/
+│   │   ├── thermal-prediction/
+│   │   ├── geometry-recognition/
+│   │   └── optimization/
+│   │
+│   └── document-analysis/
+│
 ├── application/
 │   └── core/
 │
@@ -303,10 +335,30 @@ thermora/
 │   ├── persistence/
 │   ├── serialization/
 │   ├── excel-import/
-│   └── export/
+│   ├── export/
+│   ├── model-storage/
+│   └── remote-calculation/
 │
-└── desktop/
-    └── compose-app/
+├── desktop/
+│   └── compose-app/
+│
+├── backend/
+│   └── server/
+│       └── src/main/java/
+│           └── com/thermora/server/
+│               ├── controller/
+│               ├── service/
+│               ├── dto/
+│               ├── security/
+│               ├── licensing/
+│               └── config/
+│
+├── docs/
+│
+└── tests/
+    ├── integration/
+    ├── benchmarks/
+    └── reference-calculations/
 ```
 
 Это целевая логическая структура, а не требование создать все модули одновременно.

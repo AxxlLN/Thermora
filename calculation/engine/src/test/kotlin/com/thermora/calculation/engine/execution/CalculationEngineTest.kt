@@ -9,6 +9,7 @@ import com.thermora.calculation.engine.registry.CalculationModelRegistry
 import com.thermora.foundation.common.result.CalculationResult
 import com.thermora.foundation.common.diagnostic.Diagnostic
 import com.thermora.foundation.common.diagnostic.DiagnosticSeverity
+import java.util.concurrent.CancellationException
 import java.util.concurrent.Executors
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
@@ -17,6 +18,9 @@ import kotlin.test.assertTrue
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
+import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
+import kotlin.test.assertSame
 
 class CalculationEngineTest {
 
@@ -63,6 +67,18 @@ class CalculationEngineTest {
             input: TestInput
         ): CalculationResult<TestOutput> {
             throw IllegalStateException("Test calculation failure")
+        }
+    }
+
+    private class ThrowingModel(
+        override val descriptor: CalculationModelDescriptor,
+        private val exception: Throwable
+    ) : CalculationModel<TestInput, TestOutput> {
+        override val inputType = TestInput::class
+        override val outputType = TestOutput::class
+
+        override fun calculate(input: TestInput): CalculationResult<TestOutput> {
+            throw exception
         }
     }
 
@@ -227,6 +243,68 @@ class CalculationEngineTest {
             "CALCULATION_EXECUTION_FAILED",
             failure.diagnostics.single().code
         )
+        assertEquals("Test calculation failure", failure.diagnostics.single().message)
+        assertEquals(DiagnosticSeverity.ERROR, failure.diagnostics.single().severity)
+        assertEquals(model.descriptor.id.value, failure.diagnostics.single().source)
+    }
+
+    @Test
+    fun `calculate should propagate original cancellation and cause`() {
+        val cause = IllegalStateException("Cancellation reason")
+        val exception = CancellationException("Calculation cancelled").apply {
+            initCause(cause)
+        }
+        val registry = CalculationModelRegistry()
+        val model = ThrowingModel(descriptor("test.cancelled"), exception)
+        registry.register(model)
+        val engine = CalculationEngine(registry)
+
+        val thrown = assertFailsWith<CancellationException> {
+            engine.calculate(model.descriptor.id, TestInput(10.0), TestOutput::class)
+        }
+
+        assertSame(exception, thrown)
+        assertSame(cause, thrown.cause)
+    }
+
+    @Test
+    fun `calculate should restore interrupt flag and propagate original interruption`() {
+        try {
+            assertFalse(Thread.currentThread().isInterrupted)
+            val cause = IllegalStateException("Interruption reason")
+            val exception = InterruptedException("Calculation interrupted").apply {
+                initCause(cause)
+            }
+            val registry = CalculationModelRegistry()
+            val model = ThrowingModel(descriptor("test.interrupted"), exception)
+            registry.register(model)
+            val engine = CalculationEngine(registry)
+
+            val thrown = assertFailsWith<InterruptedException> {
+                engine.calculate(model.descriptor.id, TestInput(10.0), TestOutput::class)
+            }
+
+            assertTrue(Thread.currentThread().isInterrupted)
+            assertSame(exception, thrown)
+            assertSame(cause, thrown.cause)
+        } finally {
+            Thread.interrupted()
+        }
+    }
+
+    @Test
+    fun `calculate should propagate JVM errors`() {
+        val error = AssertionError("Model error")
+        val registry = CalculationModelRegistry()
+        val model = ThrowingModel(descriptor("test.error"), error)
+        registry.register(model)
+        val engine = CalculationEngine(registry)
+
+        val thrown = assertFailsWith<AssertionError> {
+            engine.calculate(model.descriptor.id, TestInput(10.0), TestOutput::class)
+        }
+
+        assertSame(error, thrown)
     }
 
     @Test

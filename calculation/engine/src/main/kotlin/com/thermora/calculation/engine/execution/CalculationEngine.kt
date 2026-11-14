@@ -8,6 +8,7 @@ import com.thermora.calculation.engine.registry.CalculationModelRegistry
 import com.thermora.foundation.common.diagnostic.Diagnostic
 import com.thermora.foundation.common.diagnostic.DiagnosticSeverity
 import com.thermora.foundation.common.result.CalculationResult
+import java.util.concurrent.CancellationException
 import kotlin.reflect.KClass
 
 class CalculationEngine(
@@ -45,6 +46,11 @@ class CalculationEngine(
 
         val result = try {
             model.calculate(input)
+        } catch (exception: CancellationException) {
+            throw exception
+        } catch (exception: InterruptedException) {
+            Thread.currentThread().interrupt()
+            throw exception
         } catch (exception: Exception) {
             return failure(
                 code = "CALCULATION_EXECUTION_FAILED",

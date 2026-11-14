@@ -1,5 +1,6 @@
 plugins {
     kotlin("jvm")
+    `java-library`
 }
 
 group = "com.thermora.foundation"
@@ -10,7 +11,7 @@ repositories {
 }
 
 dependencies {
-    implementation(project(":foundation:units"))
+    api(project(":foundation:units"))
     implementation(project(":foundation:common"))
 
     testImplementation(kotlin("test"))

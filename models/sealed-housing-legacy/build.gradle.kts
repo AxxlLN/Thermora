@@ -1,12 +1,13 @@
 plugins {
     kotlin("jvm")
+    `java-library`
 }
 
 dependencies {
-    implementation(project(":foundation:common"))
-    implementation(project(":foundation:units"))
-    implementation(project(":foundation:domain"))
-    implementation(project(":calculation:api"))
+    api(project(":foundation:common"))
+    api(project(":foundation:units"))
+    api(project(":foundation:domain"))
+    api(project(":calculation:api"))
 
     testImplementation(kotlin("test"))
 }

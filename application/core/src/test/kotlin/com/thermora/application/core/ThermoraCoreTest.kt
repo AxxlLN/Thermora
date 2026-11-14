@@ -1,6 +1,7 @@
 
 package com.thermora.application.core
 
+import com.thermora.calculation.api.model.CalculationModel
 import com.thermora.calculation.api.metadata.CalculationModelId
 import com.thermora.foundation.common.result.CalculationResult
 import com.thermora.foundation.domain.environment.AmbientConditions
@@ -14,6 +15,8 @@ import com.thermora.foundation.units.unit.StandardUnits
 import com.thermora.models.sealedhousing.legacy.SealedHousingLegacyModel
 import com.thermora.models.sealedhousing.legacy.input.SealedHousingLegacyInput
 import com.thermora.models.sealedhousing.legacy.output.SealedHousingLegacyOutput
+import java.util.concurrent.CancellationException
+import kotlin.test.assertSame
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -133,6 +136,31 @@ class ThermoraCoreTest {
         )
 
         assertIs<CalculationResult.Success<SealedHousingLegacyOutput>>(result)
+    }
+
+    @Test
+    fun `propagates cancellation through application core`() {
+        val cause = IllegalStateException("Cancellation reason")
+        val exception = CancellationException("Calculation cancelled").apply {
+            initCause(cause)
+        }
+        val model = object : CalculationModel<SealedHousingLegacyInput, SealedHousingLegacyOutput> {
+            override val descriptor = SealedHousingLegacyModel().descriptor
+            override val inputType = SealedHousingLegacyInput::class
+            override val outputType = SealedHousingLegacyOutput::class
+
+            override fun calculate(input: SealedHousingLegacyInput): CalculationResult<SealedHousingLegacyOutput> {
+                throw exception
+            }
+        }
+        val core = ThermoraCoreFactory.create(listOf(model))
+
+        val thrown = assertFailsWith<CancellationException> {
+            core.calculate(modelId, referenceInput(), SealedHousingLegacyOutput::class)
+        }
+
+        assertSame(exception, thrown)
+        assertSame(cause, thrown.cause)
     }
 
     @Test

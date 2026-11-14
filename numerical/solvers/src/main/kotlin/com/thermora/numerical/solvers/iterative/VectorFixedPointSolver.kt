@@ -37,23 +37,21 @@ object VectorFixedPointSolver {
         var residualNorm: Double? = null
         var stepNorm: Double? = null
 
-        fun evaluate(state: DoubleArray): DoubleArray? {
-            val result = update(state.copyOf())
-            return result.takeIf {
-                it.size == state.size && it.all(Double::isFinite)
-            }
+        fun evaluate(state: DoubleArray): DoubleArray = update(state.copyOf()).copyOf()
+
+        fun failure(target: DoubleArray): SolverStatus? = when {
+            target.size != current.size -> SolverStatus.INVALID_DIMENSION
+            target.any { !it.isFinite() } -> SolverStatus.NON_FINITE
+            else -> null
+        }
+
+        var target = evaluate(current)
+        val initialFailure = failure(target)
+        if (initialFailure != null) {
+            return SolverResult(value = current, status = initialFailure)
         }
 
         repeat(options.maxIterations) { index ->
-            val target = evaluate(current)
-                ?: return SolverResult(
-                    value = current.copyOf(),
-                    status = SolverStatus.NON_FINITE,
-                    iterations = index,
-                    residualNorm = residualNorm,
-                    stepNorm = stepNorm
-                )
-
             val previous = Array(current.size) { BigDecimal(current[it]) }
             val next = DoubleArray(current.size) { i ->
                 when {
@@ -67,15 +65,20 @@ object VectorFixedPointSolver {
             val state = Array(next.size) { BigDecimal(next[it]) }
             val steps = Array(next.size) { state[it].subtract(previous[it]).abs() }
             stepNorm = normalizedNorm(steps, decimalScales)
+            val unchanged = next.contentEquals(current)
             current = next
 
-            val nextTarget = evaluate(current)
-                ?: return SolverResult(
-                    value = current.copyOf(),
-                    status = SolverStatus.NON_FINITE,
+            val nextTarget = if (unchanged) target else evaluate(current)
+            val evaluationFailure = failure(nextTarget)
+            if (evaluationFailure != null) {
+                return SolverResult(
+                    value = current,
+                    status = evaluationFailure,
                     iterations = index + 1,
                     stepNorm = stepNorm
                 )
+            }
+            target = nextTarget
 
             val residuals = Array(current.size) { BigDecimal(nextTarget[it]).subtract(state[it]).abs() }
             residualNorm = normalizedNorm(residuals, decimalScales)
@@ -89,7 +92,7 @@ object VectorFixedPointSolver {
 
             if (converged) {
                 return SolverResult(
-                    value = current.copyOf(),
+                    value = current,
                     status = SolverStatus.CONVERGED,
                     iterations = index + 1,
                     residualNorm = residualNorm,
@@ -99,7 +102,7 @@ object VectorFixedPointSolver {
         }
 
         return SolverResult(
-            value = current.copyOf(),
+            value = current,
             status = SolverStatus.MAX_ITERATIONS,
             iterations = options.maxIterations,
             residualNorm = residualNorm,

@@ -73,7 +73,7 @@ class VectorFixedPointSolverTest {
             update = { doubleArrayOf(1.0) }
         )
 
-        assertEquals(SolverStatus.NON_FINITE, result.status)
+        assertEquals(SolverStatus.INVALID_DIMENSION, result.status)
     }
 
     @Test
@@ -364,10 +364,10 @@ class VectorFixedPointSolverTest {
     }
 
     @Test
-    fun `callback dimension errors retain existing status at both evaluation stages`() {
+    fun `callback dimension errors have a dedicated status at both evaluation stages`() {
         for (wrong in listOf(doubleArrayOf(), doubleArrayOf(1.0), doubleArrayOf(1.0, 2.0, 3.0))) {
             val first = VectorFixedPointSolver.solve(doubleArrayOf(0.0, 0.0), { wrong })
-            assertEquals(SolverStatus.NON_FINITE, first.status)
+            assertEquals(SolverStatus.INVALID_DIMENSION, first.status)
             assertEquals(0, first.iterations)
             assertContentEquals(doubleArrayOf(0.0, 0.0), first.value)
 
@@ -375,7 +375,7 @@ class VectorFixedPointSolverTest {
                 doubleArrayOf(0.0, 0.0),
                 { x -> if (x[0] == 0.0) doubleArrayOf(1.0, 2.0) else wrong }
             )
-            assertEquals(SolverStatus.NON_FINITE, second.status)
+            assertEquals(SolverStatus.INVALID_DIMENSION, second.status)
             assertEquals(1, second.iterations)
             assertContentEquals(doubleArrayOf(1.0, 2.0), second.value)
             assertNull(second.residualNorm)
@@ -443,5 +443,107 @@ class VectorFixedPointSolverTest {
             VectorFixedPointSolver.solve(doubleArrayOf(1.0), { throw failure })
         }
         kotlin.test.assertSame(failure, actual)
+    }
+
+    @Test
+    fun `cached evaluations visit each successive state once`() {
+        val visited = mutableListOf<Double>()
+        val result = VectorFixedPointSolver.solve(
+            doubleArrayOf(0.0),
+            { x -> visited.add(x[0]); doubleArrayOf(x[0] + 1.0) },
+            IterativeSolverOptions(maxIterations = 3)
+        )
+        assertEquals(listOf(0.0, 1.0, 2.0, 3.0), visited)
+        assertEquals(SolverStatus.MAX_ITERATIONS, result.status)
+        assertEquals(3, result.iterations)
+        assertEquals(1.0, result.residualNorm)
+        assertEquals(1.0, result.stepNorm)
+    }
+
+    @Test
+    fun `self step counts as one iteration but reuses its evaluation`() {
+        var calls = 0
+        val result = VectorFixedPointSolver.solve(doubleArrayOf(2.0), { calls++; it })
+        assertEquals(1, calls)
+        assertEquals(1, result.iterations)
+        assertEquals(SolverStatus.CONVERGED, result.status)
+    }
+
+    @Test
+    fun `snapshot result remains unchanged through getter copy and destructuring`() {
+        val result = VectorFixedPointSolver.solve(doubleArrayOf(1.0), { doubleArrayOf(1.0) })
+        val copy = result.copy()
+        val (component, status, iterations, residual, step) = result
+        assertNotNull(component)[0] = 100.0
+        assertNotNull(result.value)[0] = 200.0
+        assertNotNull(copy.value)[0] = 300.0
+        assertContentEquals(doubleArrayOf(1.0), result.value)
+        assertContentEquals(doubleArrayOf(1.0), copy.value)
+        assertEquals(status, result.status)
+        assertEquals(iterations, result.iterations)
+        assertEquals(residual, result.residualNorm)
+        assertEquals(step, result.stepNorm)
+        assertEquals(0.0, result.residualNorm)
+        assertEquals(result, copy)
+    }
+
+    @Test
+    fun `cached callback output can reuse a scratch array`() {
+        val scratch = doubleArrayOf(0.0)
+        val result = VectorFixedPointSolver.solve(
+            doubleArrayOf(0.0),
+            { x -> scratch[0] = 0.5*x[0] + 1.0; scratch },
+            IterativeSolverOptions(maxIterations = 3)
+        )
+        scratch[0] = 100.0
+        assertContentEquals(doubleArrayOf(1.75), result.value)
+        assertEquals(0.125, result.residualNorm)
+        assertEquals(0.25, result.stepNorm)
+        assertEquals(3, result.iterations)
+    }
+
+    @Test
+    fun `dimension takes precedence over non finite elements in a malformed callback result`() {
+        val result = VectorFixedPointSolver.solve(doubleArrayOf(0.0), { doubleArrayOf(Double.NaN, 1.0) })
+        assertEquals(SolverStatus.INVALID_DIMENSION, result.status)
+        assertEquals(0, result.iterations)
+        assertNull(result.residualNorm)
+        assertNull(result.stepNorm)
+    }
+
+    @Test
+    fun `second evaluation exception is propagated unchanged`() {
+        val failure = IllegalStateException("new point")
+        val actual = kotlin.test.assertFailsWith<IllegalStateException> {
+            VectorFixedPointSolver.solve(doubleArrayOf(0.0), { x -> if (x[0] == 0.0) doubleArrayOf(1.0) else throw failure })
+        }
+        kotlin.test.assertSame(failure, actual)
+    }
+
+    @Test
+    fun `non finite evaluation after two accepted steps retains the last step`() {
+        val result = VectorFixedPointSolver.solve(doubleArrayOf(0.0), { x -> doubleArrayOf(if (x[0] < 2.0) x[0] + 1.0 else Double.NaN) })
+        assertEquals(SolverStatus.NON_FINITE, result.status)
+        assertContentEquals(doubleArrayOf(2.0), result.value)
+        assertEquals(2, result.iterations)
+        assertNull(result.residualNorm)
+        assertEquals(1.0, result.stepNorm)
+    }
+
+    @Test
+    fun `signed zero change requires a new evaluation`() {
+        val visited = mutableListOf<Long>()
+        val result = VectorFixedPointSolver.solve(doubleArrayOf(-0.0), { x -> visited.add(x[0].toRawBits()); doubleArrayOf(0.0) })
+        assertEquals(listOf((-0.0).toRawBits(), 0.0.toRawBits()), visited)
+        assertEquals(SolverStatus.CONVERGED, result.status)
+        assertEquals(1, result.iterations)
+    }
+
+    @Test
+    fun `cancellation and errors are not converted into solver statuses`() {
+        for (failure in listOf<Throwable>(java.util.concurrent.CancellationException("cancel"), AssertionError("error"))) {
+            val actual = kotlin.test.assertFails { VectorFixedPointSolver.solve(doubleArrayOf(0.0), { throw failure }) }
+            kotlin.test.assertSame(failure, actual)
+        }
     }
 }

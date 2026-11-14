@@ -27,19 +27,12 @@ object FixedPointSolver {
         var current = initial
         var residualNorm: Double? = null
         var stepNorm: Double? = null
+        var target = update(current)
+        if (!target.isFinite()) {
+            return SolverResult(value = current, status = SolverStatus.NON_FINITE)
+        }
 
         repeat(options.maxIterations) { index ->
-            val target = update(current)
-
-            if (!target.isFinite()) {
-                return SolverResult(
-                    value = current,
-                    status = SolverStatus.NON_FINITE,
-                    iterations = index,
-                    residualNorm = residualNorm,
-                    stepNorm = stepNorm
-                )
-            }
 
             val previous = BigDecimal(current)
             val next = when {
@@ -52,9 +45,10 @@ object FixedPointSolver {
             val state = BigDecimal(next)
             val step = state.subtract(previous).abs()
             stepNorm = step.toDouble().takeIf { it.isFinite() }
+            val unchanged = next.toRawBits() == current.toRawBits()
             current = next
 
-            val nextTarget = update(current)
+            val nextTarget = if (unchanged) target else update(current)
 
             if (!nextTarget.isFinite()) {
                 return SolverResult(
@@ -65,6 +59,7 @@ object FixedPointSolver {
                 )
             }
 
+            target = nextTarget
             val residual = BigDecimal(nextTarget).subtract(state).abs()
             residualNorm = residual.toDouble().takeIf { it.isFinite() }
             val tolerance = absoluteTolerance.add(

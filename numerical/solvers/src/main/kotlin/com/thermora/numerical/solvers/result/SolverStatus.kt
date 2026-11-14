@@ -6,5 +6,6 @@ enum class SolverStatus {
     NON_FINITE,
     STAGNATED,
     DIVERGED,
-    INVALID_INPUT
+    INVALID_INPUT,
+    INVALID_DIMENSION
 }

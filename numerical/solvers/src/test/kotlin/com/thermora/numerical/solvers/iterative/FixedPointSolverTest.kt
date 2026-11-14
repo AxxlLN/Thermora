@@ -21,8 +21,8 @@ class FixedPointSolverTest {
         )
 
         assertEquals(SolverStatus.CONVERGED, result.status)
-        assertNotNull(result.value)
-        assertEquals(0.7390851332, result.value, 1e-7)
+        val value = assertNotNull(result.value)
+        assertEquals(0.7390851332, value, 1e-7)
     }
 
     @Test
@@ -339,5 +339,61 @@ class FixedPointSolverTest {
             FixedPointSolver.solve(1.0, { throw failure })
         }
         kotlin.test.assertSame(failure, actual)
+    }
+
+    @Test
+    fun `cached evaluations visit each successive state once`() {
+        val visited = mutableListOf<Double>()
+        val result = FixedPointSolver.solve(0.0, { x -> visited.add(x); x + 1.0 }, IterativeSolverOptions(maxIterations = 3))
+        assertEquals(listOf(0.0, 1.0, 2.0, 3.0), visited)
+        assertEquals(SolverStatus.MAX_ITERATIONS, result.status)
+        assertEquals(3, result.iterations)
+        assertEquals(1.0, result.residualNorm)
+        assertEquals(1.0, result.stepNorm)
+    }
+
+    @Test
+    fun `self step counts as one iteration but reuses its evaluation`() {
+        var calls = 0
+        val result = FixedPointSolver.solve(2.0, { calls++; it })
+        assertEquals(1, calls)
+        assertEquals(1, result.iterations)
+        assertEquals(SolverStatus.CONVERGED, result.status)
+    }
+
+    @Test
+    fun `second evaluation exception is propagated unchanged`() {
+        val failure = IllegalStateException("new point")
+        val actual = kotlin.test.assertFailsWith<IllegalStateException> {
+            FixedPointSolver.solve(0.0, { if (it == 0.0) 1.0 else throw failure })
+        }
+        kotlin.test.assertSame(failure, actual)
+    }
+
+    @Test
+    fun `non finite evaluation after two accepted steps retains the last step`() {
+        val result = FixedPointSolver.solve(0.0, { if (it < 2.0) it + 1.0 else Double.NaN })
+        assertEquals(SolverStatus.NON_FINITE, result.status)
+        assertEquals(2.0, result.value)
+        assertEquals(2, result.iterations)
+        assertNull(result.residualNorm)
+        assertEquals(1.0, result.stepNorm)
+    }
+
+    @Test
+    fun `signed zero change requires a new evaluation`() {
+        val visited = mutableListOf<Long>()
+        val result = FixedPointSolver.solve(-0.0, { visited.add(it.toRawBits()); 0.0 })
+        assertEquals(listOf((-0.0).toRawBits(), 0.0.toRawBits()), visited)
+        assertEquals(SolverStatus.CONVERGED, result.status)
+        assertEquals(1, result.iterations)
+    }
+
+    @Test
+    fun `cancellation and errors are not converted into solver statuses`() {
+        for (failure in listOf<Throwable>(java.util.concurrent.CancellationException("cancel"), AssertionError("error"))) {
+            val actual = kotlin.test.assertFails { FixedPointSolver.solve(0.0, { throw failure }) }
+            kotlin.test.assertSame(failure, actual)
+        }
     }
 }

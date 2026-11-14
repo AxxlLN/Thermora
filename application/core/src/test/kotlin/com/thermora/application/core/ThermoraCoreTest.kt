@@ -1,6 +1,7 @@
 
 package com.thermora.application.core
 
+import com.thermora.calculation.api.validation.ValidationReport
 import com.thermora.calculation.api.model.CalculationModel
 import com.thermora.calculation.api.metadata.CalculationModelId
 import com.thermora.foundation.common.result.CalculationResult
@@ -148,6 +149,8 @@ class ThermoraCoreTest {
             override val descriptor = SealedHousingLegacyModel().descriptor
             override val inputType = SealedHousingLegacyInput::class
             override val outputType = SealedHousingLegacyOutput::class
+
+            override fun validate(input: SealedHousingLegacyInput): ValidationReport = ValidationReport.valid()
 
             override fun calculate(input: SealedHousingLegacyInput): CalculationResult<SealedHousingLegacyOutput> {
                 throw exception

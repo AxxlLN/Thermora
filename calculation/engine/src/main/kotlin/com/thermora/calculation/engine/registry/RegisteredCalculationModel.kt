@@ -7,6 +7,7 @@ import com.thermora.calculation.api.model.CalculationOutput
 import com.thermora.foundation.common.diagnostic.Diagnostic
 import com.thermora.foundation.common.diagnostic.DiagnosticSeverity
 import com.thermora.foundation.common.result.CalculationResult
+import java.util.concurrent.CancellationException
 import kotlin.reflect.KClass
 
 internal interface RegisteredCalculationModel {
@@ -55,6 +56,35 @@ internal class TypedRegisteredCalculationModel<
         }
 
         @Suppress("UNCHECKED_CAST")
-        return model.calculate(input as I)
+        val typedInput = input as I
+        val validation = model.validate(typedInput)
+        if (!validation.isValid) {
+            return CalculationResult.Failure(validation.diagnostics)
+        }
+
+        val result = try {
+            model.calculate(typedInput)
+        } catch (exception: CancellationException) {
+            throw exception
+        } catch (exception: InterruptedException) {
+            throw exception
+        } catch (exception: Exception) {
+            throw ValidatedCalculationException(validation.diagnostics, exception)
+        }
+
+        return when (result) {
+            is CalculationResult.Success -> CalculationResult.Success(
+                result.value,
+                validation.diagnostics + result.diagnostics
+            )
+            is CalculationResult.Failure -> CalculationResult.Failure(
+                validation.diagnostics + result.diagnostics
+            )
+        }
     }
 }
+
+internal class ValidatedCalculationException(
+    val validationDiagnostics: List<Diagnostic>,
+    val originalException: Exception
+) : Exception(originalException)

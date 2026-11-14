@@ -3,6 +3,7 @@ package com.thermora.models.sealedhousing.legacy
 import com.thermora.calculation.api.metadata.CalculationModelDescriptor
 import com.thermora.calculation.api.metadata.CalculationModelId
 import com.thermora.calculation.api.model.CalculationModel
+import com.thermora.calculation.api.validation.ValidationReport
 import com.thermora.foundation.common.diagnostic.Diagnostic
 import com.thermora.foundation.common.diagnostic.DiagnosticSeverity
 import com.thermora.foundation.common.result.CalculationResult
@@ -33,11 +34,14 @@ class SealedHousingLegacyModel :
 
     private val inputValidator = LegacyInputValidator(descriptor.id.value)
 
+    override fun validate(input: SealedHousingLegacyInput): ValidationReport =
+        inputValidator.validate(input)
+
     override fun calculate(
         input: SealedHousingLegacyInput
     ): CalculationResult<SealedHousingLegacyOutput> {
 
-        val validation = inputValidator.validate(input)
+        val validation = validate(input)
         if (!validation.isValid) {
             return CalculationResult.Failure(validation.diagnostics)
         }

@@ -1,3 +1,4 @@
+import com.thermora.calculation.api.validation.ValidationReport
 import com.thermora.application.core.ThermoraCoreFactory
 import com.thermora.calculation.api.metadata.CalculationModelDescriptor
 import com.thermora.calculation.api.metadata.CalculationModelId
@@ -13,6 +14,8 @@ object Model : CalculationModel<Input, Output> {
     override val descriptor = CalculationModelDescriptor(CalculationModelId("smoke"), "Smoke", "1")
     override val inputType = Input::class
     override val outputType = Output::class
+    override fun validate(input: Input): ValidationReport = ValidationReport.valid()
+
     override fun calculate(input: Input): CalculationResult<Output> = CalculationResult.Success(Output())
 }
 

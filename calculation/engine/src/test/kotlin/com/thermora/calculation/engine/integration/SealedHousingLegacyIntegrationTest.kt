@@ -92,6 +92,50 @@ class SealedHousingLegacyIntegrationTest {
     }
 
     @Test
+    fun `legacy prevalidation and direct calls preserve identical errors without duplication`() {
+        val model = SealedHousingLegacyModel()
+        val registry = CalculationModelRegistry()
+        registry.register(model)
+        val engine = CalculationEngine(registry)
+        val original = referenceInput()
+        val invalidInputs = listOf(
+            original.copy(source = ThermalSource(Quantity(0.0, StandardUnits.WATT))),
+            original.copy(elementWithRadiatorArea = Quantity(-1.0, StandardUnits.SQUARE_METER))
+        )
+        invalidInputs.forEach { input ->
+            val report = model.validate(input)
+            val direct = assertIs<CalculationResult.Failure>(model.calculate(input))
+            val executed = assertIs<CalculationResult.Failure>(
+                engine.calculate(modelId, input, SealedHousingLegacyOutput::class)
+            )
+
+            assertEquals(false, report.isValid)
+            assertEquals(1, executed.diagnostics.size)
+            assertEquals(report.diagnostics, direct.diagnostics)
+            assertEquals(direct, executed)
+        }
+    }
+
+    @Test
+    fun `legacy prevalidation does not duplicate applicability warning or change output`() {
+        val model = SealedHousingLegacyModel()
+        val registry = CalculationModelRegistry()
+        registry.register(model)
+        val input = referenceInput()
+
+        assertTrue(model.validate(input).isValid)
+        assertTrue(model.validate(input).diagnostics.isEmpty())
+        val direct = assertIs<CalculationResult.Success<SealedHousingLegacyOutput>>(model.calculate(input))
+        val executed = assertIs<CalculationResult.Success<SealedHousingLegacyOutput>>(
+            CalculationEngine(registry).calculate(modelId, input, SealedHousingLegacyOutput::class)
+        )
+
+        assertEquals(direct, executed)
+        assertEquals(1, executed.diagnostics.size)
+        assertEquals("SEALED_LEGACY_APPLICABILITY_UNKNOWN", executed.diagnostics.single().code)
+    }
+
+    @Test
     fun `returns failure when model is not registered`() {
         val registry = CalculationModelRegistry()
         val engine = CalculationEngine(registry)

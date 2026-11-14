@@ -1,5 +1,6 @@
 package com.thermora.calculation.engine.registry
 
+import com.thermora.calculation.api.validation.ValidationReport
 import com.thermora.calculation.api.metadata.CalculationModelDescriptor
 import com.thermora.calculation.api.metadata.CalculationModelId
 import com.thermora.calculation.api.model.CalculationInput
@@ -29,6 +30,8 @@ class CalculationModelRegistryTest {
 
         override val inputType = TestInput::class
         override val outputType = TestOutput::class
+
+        override fun validate(input: TestInput): ValidationReport = ValidationReport.valid()
 
         override fun calculate(
             input: TestInput

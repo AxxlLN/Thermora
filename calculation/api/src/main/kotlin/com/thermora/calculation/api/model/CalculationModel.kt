@@ -2,6 +2,7 @@
 package com.thermora.calculation.api.model
 
 import com.thermora.calculation.api.metadata.CalculationModelDescriptor
+import com.thermora.calculation.api.validation.ValidationReport
 import com.thermora.foundation.common.result.CalculationResult
 import kotlin.reflect.KClass
 
@@ -26,6 +27,8 @@ interface CalculationModel<
      * Runtime type of the model output.
      */
     val outputType: KClass<O>
+
+    fun validate(input: I): ValidationReport
 
     fun calculate(input: I): CalculationResult<O>
 }

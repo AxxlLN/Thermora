@@ -1,5 +1,6 @@
 package com.thermora.calculation.engine.execution
 
+import com.thermora.calculation.api.validation.ValidationReport
 import com.thermora.calculation.api.metadata.CalculationModelDescriptor
 import com.thermora.calculation.api.metadata.CalculationModelId
 import com.thermora.calculation.api.model.CalculationInput
@@ -47,6 +48,8 @@ class CalculationEngineTest {
         override val inputType = TestInput::class
         override val outputType = TestOutput::class
 
+        override fun validate(input: TestInput): ValidationReport = ValidationReport.valid()
+
         override fun calculate(
             input: TestInput
         ): CalculationResult<TestOutput> {
@@ -63,6 +66,8 @@ class CalculationEngineTest {
         override val inputType = TestInput::class
         override val outputType = TestOutput::class
 
+        override fun validate(input: TestInput): ValidationReport = ValidationReport.valid()
+
         override fun calculate(
             input: TestInput
         ): CalculationResult<TestOutput> {
@@ -76,6 +81,8 @@ class CalculationEngineTest {
     ) : CalculationModel<TestInput, TestOutput> {
         override val inputType = TestInput::class
         override val outputType = TestOutput::class
+
+        override fun validate(input: TestInput): ValidationReport = ValidationReport.valid()
 
         override fun calculate(input: TestInput): CalculationResult<TestOutput> {
             throw exception
@@ -104,6 +111,8 @@ class CalculationEngineTest {
             source = descriptor.id.value
         )
 
+        override fun validate(input: TestInput): ValidationReport = ValidationReport.valid()
+
         override fun calculate(
             input: TestInput
         ): CalculationResult<TestOutput> {
@@ -122,6 +131,8 @@ class CalculationEngineTest {
 
         override val inputType = TestInput::class
         override val outputType = TestOutput::class
+
+        override fun validate(input: TestInput): ValidationReport = ValidationReport.valid()
 
         override fun calculate(
             input: TestInput

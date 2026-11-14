@@ -5,6 +5,7 @@ import com.thermora.calculation.api.metadata.CalculationModelId
 import com.thermora.calculation.api.model.CalculationInput
 import com.thermora.calculation.api.model.CalculationOutput
 import com.thermora.calculation.engine.registry.CalculationModelRegistry
+import com.thermora.calculation.engine.registry.ValidatedCalculationException
 import com.thermora.foundation.common.diagnostic.Diagnostic
 import com.thermora.foundation.common.diagnostic.DiagnosticSeverity
 import com.thermora.foundation.common.result.CalculationResult
@@ -52,22 +53,26 @@ class CalculationEngine(
             Thread.currentThread().interrupt()
             throw exception
         } catch (exception: Exception) {
-            return failure(
+            val validationDiagnostics = (exception as? ValidatedCalculationException)?.validationDiagnostics.orEmpty()
+            val originalException = (exception as? ValidatedCalculationException)?.originalException ?: exception
+            val executionFailure = failure(
                 code = "CALCULATION_EXECUTION_FAILED",
-                message = exception.message
+                message = originalException.message
                     ?: "Unexpected error during calculation",
                 source = modelId.value
             )
+            return CalculationResult.Failure(validationDiagnostics + executionFailure.diagnostics)
         }
 
         return when (result) {
             is CalculationResult.Success -> {
                 if (!expectedOutputType.isInstance(result.value)) {
-                    failure(
+                    val invalidOutput = failure(
                         code = "CALCULATION_INVALID_OUTPUT",
                         message = "Calculation model returned an invalid output type",
                         source = modelId.value
                     )
+                    CalculationResult.Failure(result.diagnostics + invalidOutput.diagnostics)
                 } else {
                     @Suppress("UNCHECKED_CAST")
                     CalculationResult.Success(
@@ -81,11 +86,11 @@ class CalculationEngine(
         }
     }
 
-    private fun <T> failure(
+    private fun failure(
         code: String,
         message: String,
         source: String
-    ): CalculationResult<T> {
+    ): CalculationResult.Failure {
         return CalculationResult.Failure(
             listOf(
                 Diagnostic(

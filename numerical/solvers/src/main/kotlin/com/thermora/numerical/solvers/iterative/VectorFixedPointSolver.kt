@@ -3,6 +3,8 @@ package com.thermora.numerical.solvers.iterative
 import com.thermora.numerical.solvers.options.IterativeSolverOptions
 import com.thermora.numerical.solvers.result.SolverResult
 import com.thermora.numerical.solvers.result.SolverStatus
+import java.math.BigDecimal
+import java.math.RoundingMode
 import kotlin.math.abs
 import kotlin.math.max
 
@@ -14,12 +16,12 @@ object VectorFixedPointSolver {
         options: IterativeSolverOptions = IterativeSolverOptions(),
         scales: DoubleArray = DoubleArray(initial.size) { 1.0 }
     ): SolverResult<DoubleArray> {
-
+        val scaleSnapshot = scales.copyOf()
         if (
             initial.isEmpty() ||
             initial.any { !it.isFinite() } ||
-            scales.size != initial.size ||
-            scales.any { !it.isFinite() || it <= 0.0 }
+            scaleSnapshot.size != initial.size ||
+            scaleSnapshot.any { !it.isFinite() || it <= 0.0 }
         ) {
             return SolverResult(
                 value = null,
@@ -27,20 +29,22 @@ object VectorFixedPointSolver {
             )
         }
 
+        val decimalScales = Array(scaleSnapshot.size) { BigDecimal(scaleSnapshot[it]) }
+        val absoluteTolerance = BigDecimal(options.absoluteTolerance)
+        val relativeTolerance = BigDecimal(options.relativeTolerance)
+        val relaxationFactor = BigDecimal(options.relaxationFactor)
         var current = initial.copyOf()
         var residualNorm: Double? = null
         var stepNorm: Double? = null
 
         fun evaluate(state: DoubleArray): DoubleArray? {
             val result = update(state.copyOf())
-
             return result.takeIf {
                 it.size == state.size && it.all(Double::isFinite)
             }
         }
 
         repeat(options.maxIterations) { index ->
-
             val target = evaluate(current)
                 ?: return SolverResult(
                     value = current.copyOf(),
@@ -50,25 +54,19 @@ object VectorFixedPointSolver {
                     stepNorm = stepNorm
                 )
 
+            val previous = Array(current.size) { BigDecimal(current[it]) }
             val next = DoubleArray(current.size) { i ->
-                current[i] +
-                        options.relaxationFactor *
-                        (target[i] - current[i])
+                when {
+                    options.relaxationFactor == 1.0 -> target[i]
+                    current[i] == target[i] -> current[i]
+                    else -> previous[i].add(
+                        BigDecimal(target[i]).subtract(previous[i]).multiply(relaxationFactor)
+                    ).toDouble()
+                }
             }
-
-            if (next.any { !it.isFinite() }) {
-                return SolverResult(
-                    value = current.copyOf(),
-                    status = SolverStatus.NON_FINITE,
-                    iterations = index + 1
-                )
-            }
-
-            val steps = DoubleArray(current.size) { i ->
-                abs(next[i] - current[i]) / scales[i]
-            }
-
-            stepNorm = steps.maxOrNull() ?: 0.0
+            val state = Array(next.size) { BigDecimal(next[it]) }
+            val steps = Array(next.size) { state[it].subtract(previous[it]).abs() }
+            stepNorm = normalizedNorm(steps, decimalScales)
             current = next
 
             val nextTarget = evaluate(current)
@@ -79,23 +77,14 @@ object VectorFixedPointSolver {
                     stepNorm = stepNorm
                 )
 
-            val residuals = DoubleArray(current.size) { i ->
-                abs(nextTarget[i] - current[i]) / scales[i]
-            }
-
-            residualNorm = residuals.maxOrNull() ?: 0.0
+            val residuals = Array(current.size) { BigDecimal(nextTarget[it]).subtract(state[it]).abs() }
+            residualNorm = normalizedNorm(residuals, decimalScales)
 
             val converged = current.indices.all { i ->
-                val tolerance =
-                    options.absoluteTolerance +
-                            options.relativeTolerance *
-                            max(
-                                abs(current[i]),
-                                abs(nextTarget[i])
-                            ) / scales[i]
-
-                residuals[i] <= tolerance &&
-                        steps[i] <= tolerance
+                val tolerance = absoluteTolerance.multiply(decimalScales[i]).add(
+                    relativeTolerance.multiply(BigDecimal(max(abs(current[i]), abs(nextTarget[i]))))
+                )
+                residuals[i] <= tolerance && steps[i] <= tolerance
             }
 
             if (converged) {
@@ -116,5 +105,20 @@ object VectorFixedPointSolver {
             residualNorm = residualNorm,
             stepNorm = stepNorm
         )
+    }
+
+    private fun normalizedNorm(values: Array<BigDecimal>, scales: Array<BigDecimal>): Double? {
+        var largest = 0
+        for (i in 1 until values.size) {
+            if (values[i].multiply(scales[largest]) > values[largest].multiply(scales[i])) {
+                largest = i
+            }
+        }
+        val norm = if (scales[largest].compareTo(BigDecimal.ONE) == 0) {
+            values[largest]
+        } else {
+            values[largest].divide(scales[largest], 1075, RoundingMode.HALF_EVEN)
+        }
+        return norm.toDouble().takeIf { it.isFinite() }
     }
 }

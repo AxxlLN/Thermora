@@ -15,6 +15,7 @@ import com.thermora.models.sealedhousing.legacy.input.SealedHousingLegacyInput
 import com.thermora.models.sealedhousing.legacy.internal.LegacyCaseRiseCurve
 import com.thermora.models.sealedhousing.legacy.internal.LegacyZoneRiseCurve
 import com.thermora.models.sealedhousing.legacy.internal.LegacyElementTemperature
+import com.thermora.models.sealedhousing.legacy.internal.LegacyTemperatureArithmetic
 import com.thermora.models.sealedhousing.legacy.output.SealedHousingLegacyOutput
 
 class SealedHousingLegacyModel :
@@ -73,13 +74,13 @@ class SealedHousingLegacyModel :
             )
 
             val airTemperature = Temperature.fromKelvin(
-                (enclosureTemperature.kelvin + zoneTemperature.kelvin) / 2.0
+                LegacyTemperatureArithmetic.mean(enclosureTemperature.kelvin, zoneTemperature.kelvin)
             )
 
             val elementTemperature =
                 LegacyElementTemperature.calculate(
                     ambientTemperature = input.ambient.temperature,
-                    heatedZoneTemperature = zoneTemperature,
+                    heatedZoneRise = zoneRise,
                     totalPowerWatts = power,
                     geometry = input.heatedZone,
                     criticalElement = input.criticalElement,

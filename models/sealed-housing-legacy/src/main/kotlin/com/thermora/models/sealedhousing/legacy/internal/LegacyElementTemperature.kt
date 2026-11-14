@@ -3,17 +3,22 @@ package com.thermora.models.sealedhousing.legacy.internal
 import com.thermora.foundation.domain.geometry.HeatSourceGeometry
 import com.thermora.foundation.domain.thermal.CriticalElementThermalProperties
 import com.thermora.foundation.units.temperature.Temperature
+import com.thermora.foundation.units.temperature.TemperatureDelta
 import com.thermora.foundation.units.quantity.Quantity
 import com.thermora.foundation.units.dimension.PhysicalDimension
+import java.math.BigDecimal
+import java.math.MathContext
+import java.math.RoundingMode
 
 internal object LegacyElementTemperature {
 
     private const val BASE_FACTOR = 0.75
     private const val POWER_FACTOR = 0.25
+    private val TEMPERATURE_CONTEXT = MathContext(40, RoundingMode.HALF_EVEN)
 
     fun calculate(
         ambientTemperature: Temperature,
-        heatedZoneTemperature: Temperature,
+        heatedZoneRise: TemperatureDelta,
         totalPowerWatts: Double,
         geometry: HeatSourceGeometry,
         criticalElement: CriticalElementThermalProperties,
@@ -37,16 +42,18 @@ internal object LegacyElementTemperature {
         val zoneArea = calculateZoneArea(geometry)
         val elementPower = criticalElement.power.baseValue
 
-        val powerRatio =
-            elementPower * zoneArea / (elementArea * totalPowerWatts)
+        val rise = BigDecimal(heatedZoneRise.kelvin)
+        val denominator = BigDecimal(elementArea).multiply(BigDecimal(totalPowerWatts))
+        val baseTemperature = BigDecimal(ambientTemperature.kelvin)
+            .add(rise.multiply(BigDecimal(BASE_FACTOR)))
+        val additionalHeatingNumerator = rise.multiply(BigDecimal(POWER_FACTOR))
+            .multiply(BigDecimal(elementPower))
+            .multiply(zoneArea)
 
-        val temperatureFactor =
-            BASE_FACTOR + POWER_FACTOR * powerRatio
-
-        val elementTemperatureKelvin =
-            ambientTemperature.kelvin +
-                    (heatedZoneTemperature.kelvin - ambientTemperature.kelvin) *
-                    temperatureFactor
+        val elementTemperatureKelvin = baseTemperature.multiply(denominator)
+            .add(additionalHeatingNumerator)
+            .divide(denominator, TEMPERATURE_CONTEXT)
+            .toDouble()
 
         require(elementTemperatureKelvin.isFinite() && elementTemperatureKelvin >= 0.0) {
             "Calculated element temperature must be finite and non-negative"
@@ -68,9 +75,11 @@ internal object LegacyElementTemperature {
         val radiatorResistance =
             criticalElement.caseToRadiatorResistance.value.baseValue
 
-        val junctionTemperatureKelvin =
-            elementTemperature.kelvin +
-                    (transitionResistance + radiatorResistance) * elementPower
+        val junctionTemperatureKelvin = BigDecimal(transitionResistance)
+            .add(BigDecimal(radiatorResistance))
+            .multiply(BigDecimal(elementPower))
+            .add(BigDecimal(elementTemperature.kelvin))
+            .toDouble()
 
         require(junctionTemperatureKelvin.isFinite() && junctionTemperatureKelvin >= 0.0) {
             "Calculated junction temperature must be finite and non-negative"
@@ -79,22 +88,14 @@ internal object LegacyElementTemperature {
         return Temperature.fromKelvin(junctionTemperatureKelvin)
     }
 
-    private fun calculateZoneArea(geometry: HeatSourceGeometry): Double {
+    private fun calculateZoneArea(geometry: HeatSourceGeometry): BigDecimal {
+        val length = BigDecimal(geometry.length.baseValue)
+        val width = BigDecimal(geometry.width.baseValue)
+        val height = BigDecimal(geometry.height.baseValue)
+        val fill = BigDecimal(geometry.volumeFillCoefficient)
 
-        val length = geometry.length.baseValue
-        val width = geometry.width.baseValue
-        val height = geometry.height.baseValue
-        val fill = geometry.volumeFillCoefficient
-
-        val area = 2.0 * (
-                length * width +
-                        height * fill * (length + width)
-                )
-
-        require(area.isFinite() && area > 0.0) {
-            "Calculated heated zone area must be positive and finite"
-        }
-
-        return area
+        return length.multiply(width)
+            .add(height.multiply(fill).multiply(length.add(width)))
+            .multiply(BigDecimal(2))
     }
 }

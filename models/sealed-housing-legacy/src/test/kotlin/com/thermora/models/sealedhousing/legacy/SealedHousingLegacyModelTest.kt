@@ -405,6 +405,57 @@ class SealedHousingLegacyModelTest {
     }
 
     @Test
+    fun `C03 legacy rises depend on total power but not zone geometry`() {
+        val input = referenceInput()
+        val reference = output(input)
+        val changedGeometry = output(input.copy(
+            heatedZone = input.heatedZone.copy(
+                length = Quantity(0.224, StandardUnits.METER),
+                width = Quantity(0.138, StandardUnits.METER),
+                height = Quantity(0.011, StandardUnits.METER),
+                volumeFillCoefficient = 1.0
+            )
+        ))
+
+        assertEquals(reference.enclosureRise, changedGeometry.enclosureRise)
+        assertEquals(reference.heatedZoneRise, changedGeometry.heatedZoneRise)
+        assertEquals(reference.enclosureToAmbientResistance, changedGeometry.enclosureToAmbientResistance)
+        assertEquals(reference.heatedZoneToAmbientResistance, changedGeometry.heatedZoneToAmbientResistance)
+        assertEquals(reference.enclosureTemperature, changedGeometry.enclosureTemperature)
+        assertEquals(reference.heatedZoneTemperature, changedGeometry.heatedZoneTemperature)
+        assertTrue(changedGeometry.elementTemperature.kelvin > reference.elementTemperature.kelvin)
+
+        val doubledPower = output(referenceInput(powerWatts = 8.6))
+        val expectedCaseRise = reference.enclosureRise.kelvin * 2.0.pow(0.8601)
+        val expectedAdditionalRise = (reference.heatedZoneRise.kelvin - reference.enclosureRise.kelvin) * 2.0.pow(0.8578)
+        assertEquals(expectedCaseRise, doubledPower.enclosureRise.kelvin, 1e-12)
+        assertEquals(expectedCaseRise + expectedAdditionalRise, doubledPower.heatedZoneRise.kelvin, 1e-12)
+        assertTrue(doubledPower.enclosureRise.kelvin > reference.enclosureRise.kelvin)
+        assertTrue(doubledPower.heatedZoneRise.kelvin > reference.heatedZoneRise.kelvin)
+    }
+
+    @Test
+    fun `C12 Foundation Celsius differs from historical Excel Celsius by point fifteen`() {
+        val result = output(referenceInput())
+        val temperatures = listOf(
+            result.enclosureTemperature, result.heatedZoneTemperature,
+            result.internalAirTemperature, result.elementTemperature, result.junctionTemperature
+        )
+        val excelCelsius = listOf(
+            50.872614243073201, 70.236874200039779, 60.554744221556462,
+            71.224063092404947, 78.099063092404947
+        )
+        temperatures.zip(excelCelsius).forEach { (temperature, cachedCelsius) ->
+            assertEquals(cachedCelsius + 273.0, temperature.kelvin, 1e-12)
+            assertEquals(cachedCelsius - 0.15, temperature.inUnit(TemperatureUnit.CELSIUS), 1e-12)
+        }
+        assertEquals(39.85, referenceInput().ambient.temperature.inUnit(TemperatureUnit.CELSIUS), 1e-12)
+        assertEquals(313.15, Temperature.of(40.0, TemperatureUnit.CELSIUS).kelvin)
+        assertEquals(result.enclosureRise.kelvin, result.enclosureRise.inUnit(TemperatureUnit.CELSIUS))
+        assertEquals(result.heatedZoneRise.kelvin, result.heatedZoneRise.inUnit(TemperatureUnit.CELSIUS))
+    }
+
+    @Test
     fun `matches Excel reference temperatures`() {
         val result = assertIs<CalculationResult.Success<*>>(
             model.calculate(referenceInput())

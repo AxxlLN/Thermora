@@ -15,7 +15,7 @@ enum class TemperatureUnit(
         val result = when (this) {
             KELVIN -> value
             CELSIUS -> value + 273.15
-            FAHRENHEIT -> (value + 459.67) * 5.0 / 9.0
+            FAHRENHEIT -> scaleWithoutIntermediateOverflow(value + 459.67, 5.0, 9.0)
         }
 
         require(result.isFinite()) {
@@ -33,7 +33,7 @@ enum class TemperatureUnit(
         val result = when (this) {
             KELVIN -> kelvin
             CELSIUS -> kelvin - 273.15
-            FAHRENHEIT -> kelvin * 9.0 / 5.0 - 459.67
+            FAHRENHEIT -> scaleWithoutIntermediateOverflow(kelvin, 9.0, 5.0) - 459.67
         }
 
         require(result.isFinite()) {
@@ -50,7 +50,7 @@ enum class TemperatureUnit(
 
         val result = when (this) {
             KELVIN, CELSIUS -> value
-            FAHRENHEIT -> value * 5.0 / 9.0
+            FAHRENHEIT -> scaleWithoutIntermediateOverflow(value, 5.0, 9.0)
         }
 
         require(result.isFinite()) {
@@ -67,7 +67,7 @@ enum class TemperatureUnit(
 
         val result = when (this) {
             KELVIN, CELSIUS -> kelvin
-            FAHRENHEIT -> kelvin * 9.0 / 5.0
+            FAHRENHEIT -> scaleWithoutIntermediateOverflow(kelvin, 9.0, 5.0)
         }
 
         require(result.isFinite()) {
@@ -75,5 +75,10 @@ enum class TemperatureUnit(
         }
 
         return result
+    }
+
+    private fun scaleWithoutIntermediateOverflow(value: Double, numerator: Double, denominator: Double): Double {
+        val product = value * numerator
+        return if (product.isFinite()) product / denominator else (value / denominator) * numerator
     }
 }

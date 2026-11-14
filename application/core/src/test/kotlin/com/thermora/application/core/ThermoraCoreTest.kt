@@ -1,4 +1,3 @@
-
 package com.thermora.application.core
 
 import com.thermora.calculation.api.validation.ValidationReport
@@ -58,13 +57,20 @@ class ThermoraCoreTest {
     )
 
     @Test
-    fun `factory registers default calculation model`() {
+    fun `factory registers default calculation models`() {
         val core = ThermoraCoreFactory.createDefault()
 
         val models = core.availableModels()
 
-        assertEquals(1, models.size)
-        assertEquals(modelId, models.single().id)
+        assertEquals(2, models.size)
+
+        assertEquals(
+            setOf(
+                CalculationModelId("sealed-housing-legacy"),
+                CalculationModelId("internal-mixing-legacy")
+            ),
+            models.map { it.id }.toSet()
+        )
     }
 
     @Test
@@ -181,5 +187,30 @@ class ThermoraCoreTest {
             exception.message?.contains("Failed to register model") == true
         )
     }
+
+
+    @Test
+    fun `default core registers both legacy models`() {
+        val core = ThermoraCoreFactory.createDefault()
+
+        val modelIds = core.availableModels()
+            .map { it.id.value }
+            .toSet()
+
+        assertEquals(
+            setOf(
+                "sealed-housing-legacy",
+                "internal-mixing-legacy"
+            ),
+            modelIds
+        )
+
+        assertNotNull(
+            core.findModel(
+                CalculationModelId("internal-mixing-legacy")
+            )
+        )
+    }
+
 
 }

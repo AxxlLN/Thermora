@@ -227,4 +227,26 @@ class CalculationEngineValidationTest {
         assertEquals("CALCULATION_INVALID_OUTPUT", result.diagnostics.last().code)
         assertEquals(listOf("validate", "calculate"), model.calls)
     }
+    @Test
+    fun `model mutations cannot erase validation diagnostics or nested details`() {
+        val details = mutableMapOf("key" to "value")
+        val warning = Diagnostic("warning", "warning", DiagnosticSeverity.WARNING, details = details)
+        val diagnostics = mutableListOf(warning)
+        val model = Model(
+            validation = { ValidationReport(diagnostics) },
+            calculation = {
+                diagnostics.clear()
+                details.clear()
+                CalculationResult.Success(Output())
+            }
+        )
+
+        val result = engine(model).calculate(model.descriptor.id, Input(), Output::class)
+        val success = assertIs<CalculationResult.Success<Output>>(result)
+
+        assertEquals(listOf(Diagnostic("warning", "warning", DiagnosticSeverity.WARNING,
+            details = mapOf("key" to "value"))), success.diagnostics)
+        assertEquals(listOf("validate", "calculate"), model.calls)
+    }
+
 }

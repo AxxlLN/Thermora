@@ -8,7 +8,9 @@ dependencies {
     api(project(":foundation:common"))
 
     implementation(project(":calculation:engine"))
-    implementation(project(":models:sealed-housing-legacy"))
+
+    api(project(":models:sealed-housing-legacy"))
+    api(project(":models:internal-mixing-legacy"))
 
     testImplementation(kotlin("test"))
     testImplementation(project(":foundation:domain"))

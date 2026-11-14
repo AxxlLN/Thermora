@@ -10,6 +10,8 @@ include(
     ":foundation:domain",
     ":calculation:api",
     ":calculation:engine",
-    ":numerical:solvers"
-
+    ":numerical:solvers",
+    ":models:sealed-housing-legacy",
+    ":application:core"
 )
+

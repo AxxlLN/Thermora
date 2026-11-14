@@ -6,7 +6,9 @@ plugins {
 dependencies {
     api(project(":calculation:api"))
     api(project(":foundation:common"))
-
+    testImplementation(project(":models:sealed-housing-legacy"))
+    testImplementation(project(":foundation:domain"))
+    testImplementation(project(":foundation:units"))
     testImplementation(kotlin("test"))
 }
 

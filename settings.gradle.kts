@@ -13,5 +13,6 @@ include(
     ":numerical:solvers",
     ":models:sealed-housing-legacy",
     ":application:core",
-    ":calculation:validation"
+    ":calculation:validation",
+    ":models:internal-mixing-legacy"
 )

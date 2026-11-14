@@ -12,6 +12,6 @@ include(
     ":calculation:engine",
     ":numerical:solvers",
     ":models:sealed-housing-legacy",
-    ":application:core"
+    ":application:core",
+    ":calculation:validation"
 )
-

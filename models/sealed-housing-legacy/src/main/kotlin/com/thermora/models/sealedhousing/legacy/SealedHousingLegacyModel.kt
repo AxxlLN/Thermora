@@ -7,11 +7,11 @@ import com.thermora.foundation.common.diagnostic.Diagnostic
 import com.thermora.foundation.common.diagnostic.DiagnosticSeverity
 import com.thermora.foundation.common.result.CalculationResult
 import com.thermora.foundation.domain.thermal.ThermalResistance
-import com.thermora.foundation.units.dimension.PhysicalDimension
 import com.thermora.foundation.units.quantity.Quantity
 import com.thermora.foundation.units.temperature.Temperature
 import com.thermora.foundation.units.unit.StandardUnits
 import com.thermora.models.sealedhousing.legacy.input.SealedHousingLegacyInput
+import com.thermora.models.sealedhousing.legacy.internal.LegacyInputValidator
 import com.thermora.models.sealedhousing.legacy.internal.LegacyCaseRiseCurve
 import com.thermora.models.sealedhousing.legacy.internal.LegacyZoneRiseCurve
 import com.thermora.models.sealedhousing.legacy.internal.LegacyElementTemperature
@@ -31,30 +31,19 @@ class SealedHousingLegacyModel :
     override val inputType = SealedHousingLegacyInput::class
     override val outputType = SealedHousingLegacyOutput::class
 
+    private val inputValidator = LegacyInputValidator(descriptor.id.value)
+
     override fun calculate(
         input: SealedHousingLegacyInput
     ): CalculationResult<SealedHousingLegacyOutput> {
 
+        val validation = inputValidator.validate(input)
+        if (!validation.isValid) {
+            return CalculationResult.Failure(validation.diagnostics)
+        }
+
         val power = input.source.power.baseValue
         val elementArea = input.elementWithRadiatorArea
-
-        if (!power.isFinite() || power <= 0.0) {
-            return failure(
-                "INVALID_TOTAL_POWER",
-                "Total dissipated power must be positive and finite"
-            )
-        }
-
-        if (
-            elementArea.unit.dimension != PhysicalDimension.AREA ||
-            !elementArea.baseValue.isFinite() ||
-            elementArea.baseValue <= 0.0
-        ) {
-            return failure(
-                "INVALID_ELEMENT_AREA",
-                "Element with radiator area must be positive and have area dimension"
-            )
-        }
 
         return try {
             val enclosureRise =

@@ -8,6 +8,7 @@ dependencies {
     api(project(":foundation:units"))
     api(project(":foundation:domain"))
     api(project(":calculation:api"))
+    implementation(project(":calculation:validation"))
 
     testImplementation(kotlin("test"))
 }

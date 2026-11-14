@@ -1,5 +1,6 @@
 package com.thermora.models.sealedhousing.legacy
 
+import com.thermora.foundation.common.diagnostic.Diagnostic
 import com.thermora.foundation.common.diagnostic.DiagnosticSeverity
 import com.thermora.foundation.common.result.CalculationResult
 import com.thermora.foundation.domain.environment.AmbientConditions
@@ -306,6 +307,100 @@ class SealedHousingLegacyModelTest {
 
         values(output(original)).zip(values(output(converted))).forEach { (expected, actual) ->
             assertEquals(expected, actual, 1e-9)
+        }
+    }
+
+    private fun assertInputFailure(input: SealedHousingLegacyInput, code: String, message: String) {
+        val failure = assertIs<CalculationResult.Failure>(model.calculate(input))
+        assertEquals(
+            listOf(Diagnostic(code, message, DiagnosticSeverity.ERROR, "sealed-housing-legacy")),
+            failure.diagnostics
+        )
+    }
+
+    @Test
+    fun `validation preserves exact diagnostics for both signed zero powers`() {
+        listOf(0.0, -0.0).forEach { power ->
+            assertInputFailure(
+                referenceInput(powerWatts = power),
+                "INVALID_TOTAL_POWER",
+                "Total dissipated power must be positive and finite"
+            )
+        }
+    }
+
+    @Test
+    fun `validation preserves exact diagnostics for non positive area`() {
+        listOf(0.0, -0.0, -1.0, -Double.MIN_VALUE).forEach { area ->
+            assertInputFailure(
+                referenceInput().copy(elementWithRadiatorArea = Quantity(area, StandardUnits.SQUARE_METER)),
+                "INVALID_ELEMENT_AREA",
+                "Element with radiator area must be positive and have area dimension"
+            )
+        }
+    }
+
+    @Test
+    fun `validation preserves area dimension constraint`() {
+        assertInputFailure(
+            referenceInput().copy(elementWithRadiatorArea = Quantity(1.0, StandardUnits.WATT)),
+            "INVALID_ELEMENT_AREA",
+            "Element with radiator area must be positive and have area dimension"
+        )
+    }
+
+    @Test
+    fun `validation preserves first error when power and area are invalid`() {
+        assertInputFailure(
+            referenceInput(powerWatts = 0.0).copy(elementWithRadiatorArea = Quantity(-1.0, StandardUnits.WATT)),
+            "INVALID_TOTAL_POWER",
+            "Total dissipated power must be positive and finite"
+        )
+    }
+
+    @Test
+    fun `input types reject negative power and non finite quantities before validation`() {
+        assertFailsWith<IllegalArgumentException> { referenceInput(powerWatts = -1.0) }
+        assertFailsWith<IllegalArgumentException> { referenceInput(elementPowerWatts = -1.0) }
+        listOf(Double.NaN, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY).forEach { value ->
+            assertFailsWith<IllegalArgumentException> { referenceInput(powerWatts = value) }
+            assertFailsWith<IllegalArgumentException> { referenceInput(elementPowerWatts = value) }
+            assertFailsWith<IllegalArgumentException> {
+                referenceInput().copy(elementWithRadiatorArea = Quantity(value, StandardUnits.SQUARE_METER))
+            }
+        }
+    }
+
+    @Test
+    fun `validation keeps zero ambient zero element power and maximum fill admissible`() {
+        val original = referenceInput(elementPowerWatts = 0.0)
+        val result = output(original.copy(
+            ambient = AmbientConditions(Temperature.fromKelvin(0.0)),
+            heatedZone = original.heatedZone.copy(volumeFillCoefficient = 1.0)
+        ))
+
+        assertEquals(22.677655650029826, result.elementTemperature.kelvin, 1e-12)
+        assertEquals(result.elementTemperature, result.junctionTemperature)
+    }
+
+    @Test
+    fun `validation accepts smallest positive and largest finite area`() {
+        listOf(Double.MIN_VALUE, Double.MAX_VALUE).forEach { area ->
+            val input = referenceInput(elementPowerWatts = 0.0).copy(
+                elementWithRadiatorArea = Quantity(area, StandardUnits.SQUARE_METER)
+            )
+            val success = assertIs<CalculationResult.Success<SealedHousingLegacyOutput>>(model.calculate(input))
+
+            assertEquals(335.67765565002985, success.value.elementTemperature.kelvin, 1e-12)
+            assertEquals(
+                listOf(Diagnostic(
+                    code = "SEALED_LEGACY_APPLICABILITY_UNKNOWN",
+                    message = "The applicability range of the empirical Excel correlations has not been established",
+                    severity = DiagnosticSeverity.WARNING,
+                    source = "sealed-housing-legacy"
+                )),
+                success.diagnostics
+            )
         }
     }
 

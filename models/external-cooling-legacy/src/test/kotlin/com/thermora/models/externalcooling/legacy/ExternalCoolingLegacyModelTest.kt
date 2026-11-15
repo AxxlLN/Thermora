@@ -10,6 +10,7 @@ import com.thermora.foundation.units.quantity.Quantity
 import com.thermora.foundation.units.temperature.Temperature
 import com.thermora.foundation.units.unit.StandardUnits
 import com.thermora.models.externalcooling.legacy.input.ExternalCoolingLegacyInput
+import com.thermora.models.externalcooling.legacy.output.ExternalCoolingLegacyOutput
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -108,17 +109,80 @@ class ExternalCoolingLegacyModelTest {
         )
     }
 
+
     @Test
-    fun validInputReturnsNotImplementedFailure() {
+    fun validInputProducesExcelReferenceResults() {
         val result = model.calculate(validInput())
 
-        val failure = assertIs<CalculationResult.Failure>(result)
+        val success =
+            assertIs<CalculationResult.Success<ExternalCoolingLegacyOutput>>(result)
 
+        val output = success.value
+
+        // AA11 — Enclosure temperature rise
         assertEquals(
-            "EXTERNAL_COOLING_NOT_IMPLEMENTED",
-            failure.diagnostics.single().code
+            6.9496599897105886,
+            output.enclosureRise.kelvin,
+            1e-9
+        )
+
+        // AA12 — Enclosure-to-ambient resistance
+        assertEquals(
+            1.6161999976071137,
+            output.enclosureToAmbientResistance.value.baseValue,
+            1e-9
+        )
+
+        // AA23 — Heated-zone temperature rise
+        assertEquals(
+            26.35835392600632,
+            output.heatedZoneRise.kelvin,
+            1e-9
+        )
+
+        // AA24 — Heated-zone-to-ambient resistance
+        assertEquals(
+            6.1298497502340279,
+            output.heatedZoneToAmbientResistance.value.baseValue,
+            1e-9
+        )
+
+        // AA27 — Enclosure temperature
+        assertEquals(
+            319.9496599897106,
+            output.enclosureTemperature.kelvin,
+            1e-9
+        )
+
+        // AA28 — Heated-zone temperature
+        assertEquals(
+            339.35835392600632,
+            output.heatedZoneTemperature.kelvin,
+            1e-9
+        )
+
+        // AA29 — Internal air temperature
+        assertEquals(
+            329.65400695785843,
+            output.internalAirTemperature.kelvin,
+            1e-9
+        )
+
+        // AA30 — Critical element temperature
+        assertEquals(
+            340.21891491007619,
+            output.elementTemperature.kelvin,
+            1e-9
+        )
+
+        // AA31 — Junction temperature
+        assertEquals(
+            347.09391491007619,
+            output.junctionTemperature.kelvin,
+            1e-9
         )
     }
+
 
     @Test
     fun invalidInputReturnsValidationFailure() {

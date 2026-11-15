@@ -35,7 +35,7 @@ models/* → calculation/api, calculation/validation, Foundation
 application/core → calculation/engine, calculation/api, Foundation, models/*
 ```
 
-Стрелка означает «зависит от». Engine не зависит от библиотеки правил в production: ему достаточно ValidationReport из API. Модели не зависят от Engine и друг от друга; application/core выполняет композицию. Публичные типы экспортируются через Gradle `api`, детали реализации остаются `implementation`. Core экспортирует оба модуля моделей, поскольку их DTO входят в публичный workflow; Engine остаётся внутренней зависимостью Core.
+Стрелка означает «зависит от». Engine не зависит от библиотеки правил в production: ему достаточно ValidationReport из API. Модели не зависят от Engine и друг от друга; application/core выполняет композицию. Публичные типы экспортируются через Gradle `api`, детали реализации остаются `implementation`. Core экспортирует модули sealed-housing-legacy, internal-mixing-legacy и external-cooling-legacy для использования их публичных DTO; Engine остаётся внутренней зависимостью Core.
 
 Интеграционный тест Engine может зависеть от конкретной модели через `testImplementation`; это не создаёт зависимости в основном коде Engine.
 
@@ -276,7 +276,9 @@ val result: CalculationResult<SealedHousingLegacyOutput> = engine.calculate(
 
 ### 7.3. ThermoraCore и двухэтапный Legacy workflow
 
-ThermoraCore — публичный фасад calculate(modelId,input,expectedOutputType), availableModels() и findModel(id). ThermoraCoreFactory.createDefault() создаёт отдельный Core с sealed-housing-legacy и internal-mixing-legacy; create(models) принимает пользовательский список, включая пустой. Повторный ID при сборке фабрикой приводит к IllegalStateException; фабрика не возвращает частично созданный Core. Это отличается от register(), возвращающего Failure.
+ThermoraCore — публичный фасад calculate(modelId,input,expectedOutputType), availableModels() и findModel(id). ThermoraCoreFactory.createDefault() создаёт отдельный Core с sealed-housing-legacy, internal-mixing-legacy и external-cooling-legacy; create(models) принимает пользовательский список, включая пустой. Повторный ID при сборке фабрикой приводит к IllegalStateException; фабрика не возвращает частично созданный Core. Это отличается от register(), возвращающего Failure.
+
+External Cooling доступен самостоятельно через ThermoraCore.calculate(); он не добавляется третьим этапом LegacyThermalWorkflow и не зависит от результатов двух других моделей.
 
 LegacyThermalWorkflow и extension ThermoraCore.calculateLegacyThermal выполняют два этапа через Core. Первый получает SealedHousingLegacyInput; из успешного результата и исходных ambient/source строится SealedHousingBoundarySnapshot. Второй получает snapshot, геометрию, площадь элемента и параметры критического элемента для Internal Mixing. Физические модели не зависят друг от друга и не вызывают Engine изнутри.
 

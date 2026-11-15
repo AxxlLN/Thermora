@@ -11,6 +11,7 @@ dependencies {
 
     api(project(":models:sealed-housing-legacy"))
     api(project(":models:internal-mixing-legacy"))
+    api(project(":models:external-cooling-legacy"))
 
     testImplementation(kotlin("test"))
     testImplementation(project(":foundation:domain"))

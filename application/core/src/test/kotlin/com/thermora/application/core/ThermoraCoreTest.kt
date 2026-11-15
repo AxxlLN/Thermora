@@ -12,6 +12,10 @@ import com.thermora.foundation.domain.thermal.ThermalSource
 import com.thermora.foundation.units.quantity.Quantity
 import com.thermora.foundation.units.temperature.Temperature
 import com.thermora.foundation.units.unit.StandardUnits
+import com.thermora.models.externalcooling.legacy.ExternalCoolingLegacyModel
+import com.thermora.models.externalcooling.legacy.input.ExternalCoolingLegacyInput
+import com.thermora.models.externalcooling.legacy.output.ExternalCoolingLegacyOutput
+import com.thermora.foundation.common.diagnostic.DiagnosticSeverity
 import com.thermora.models.sealedhousing.legacy.SealedHousingLegacyModel
 import com.thermora.models.sealedhousing.legacy.input.SealedHousingLegacyInput
 import com.thermora.models.sealedhousing.legacy.output.SealedHousingLegacyOutput
@@ -62,12 +66,13 @@ class ThermoraCoreTest {
 
         val models = core.availableModels()
 
-        assertEquals(2, models.size)
+        assertEquals(3, models.size)
 
         assertEquals(
             setOf(
                 CalculationModelId("sealed-housing-legacy"),
-                CalculationModelId("internal-mixing-legacy")
+                CalculationModelId("internal-mixing-legacy"),
+                CalculationModelId("external-cooling-legacy")
             ),
             models.map { it.id }.toSet()
         )
@@ -190,7 +195,7 @@ class ThermoraCoreTest {
 
 
     @Test
-    fun `default core registers both legacy models`() {
+    fun `default core registers all three legacy models`() {
         val core = ThermoraCoreFactory.createDefault()
 
         val modelIds = core.availableModels()
@@ -200,7 +205,8 @@ class ThermoraCoreTest {
         assertEquals(
             setOf(
                 "sealed-housing-legacy",
-                "internal-mixing-legacy"
+                "internal-mixing-legacy",
+                "external-cooling-legacy"
             ),
             modelIds
         )
@@ -212,5 +218,59 @@ class ThermoraCoreTest {
         )
     }
 
+
+    private fun externalInput(): ExternalCoolingLegacyInput {
+        val input = referenceInput()
+        return ExternalCoolingLegacyInput(input.ambient, input.source, input.heatedZone,
+            input.criticalElement, input.elementWithRadiatorArea)
+    }
+
+    @Test
+    fun `default core discovers and executes external cooling with all nine Excel outputs`() {
+        val core = ThermoraCoreFactory.createDefault()
+        val id = CalculationModelId("external-cooling-legacy")
+        val descriptor = assertNotNull(core.findModel(id))
+        assertEquals("1.0.0", descriptor.version)
+        assertEquals(1, core.availableModels().count { it.id == id })
+        val input = externalInput()
+
+        val success = assertIs<CalculationResult.Success<ExternalCoolingLegacyOutput>>(
+            core.calculate(id, input, ExternalCoolingLegacyOutput::class)
+        )
+        val output = success.value
+        val expected = listOf(6.9496599897105886, 1.6161999976071137, 26.35835392600632,
+            6.1298497502340279, 319.9496599897106, 339.35835392600632,
+            329.65400695785843, 340.21891491007619, 347.09391491007619)
+        val actual = listOf(output.enclosureRise.kelvin, output.enclosureToAmbientResistance.value.baseValue,
+            output.heatedZoneRise.kelvin, output.heatedZoneToAmbientResistance.value.baseValue,
+            output.enclosureTemperature.kelvin, output.heatedZoneTemperature.kelvin,
+            output.internalAirTemperature.kelvin, output.elementTemperature.kelvin, output.junctionTemperature.kelvin)
+        expected.zip(actual).forEach { (reference, value) -> assertEquals(reference, value, 1e-9) }
+        assertEquals(ExternalCoolingLegacyModel().calculate(input), success)
+        assertEquals(success, core.calculate(id, input, ExternalCoolingLegacyOutput::class))
+        assertEquals("EXTERNAL_COOLING_LEGACY_APPLICABILITY_UNKNOWN", success.diagnostics.single().code)
+        assertEquals(DiagnosticSeverity.WARNING, success.diagnostics.single().severity)
+    }
+
+    @Test
+    fun `core preserves external cooling validation and numerical failure codes`() {
+        val core = ThermoraCoreFactory.createDefault()
+        val input = externalInput()
+        val requests = listOf(
+            input.copy(source = ThermalSource(Quantity(0.0, StandardUnits.WATT))) to
+                "EXTERNAL_COOLING_INVALID_TOTAL_POWER",
+            input.copy(elementWithRadiatorArea = Quantity(0.0, StandardUnits.SQUARE_METER)) to
+                "EXTERNAL_COOLING_INVALID_ELEMENT_AREA",
+            input.copy(elementWithRadiatorArea = Quantity(Double.MIN_VALUE, StandardUnits.SQUARE_METER)) to
+                "EXTERNAL_COOLING_CALCULATION_ERROR"
+        )
+        requests.forEach { (request, code) ->
+            val failure = assertIs<CalculationResult.Failure>(core.calculate(
+                CalculationModelId("external-cooling-legacy"), request, ExternalCoolingLegacyOutput::class))
+            assertEquals(code, failure.diagnostics.single().code)
+            assertEquals(DiagnosticSeverity.ERROR, failure.diagnostics.single().severity)
+            assertEquals(ExternalCoolingLegacyModel().calculate(request), failure)
+        }
+    }
 
 }

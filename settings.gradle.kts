@@ -14,5 +14,6 @@ include(
     ":models:sealed-housing-legacy",
     ":application:core",
     ":calculation:validation",
-    ":models:internal-mixing-legacy"
+    ":models:internal-mixing-legacy",
+    ":models:external-cooling-legacy"
 )

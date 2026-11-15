@@ -4,6 +4,7 @@ import com.thermora.calculation.api.model.CalculationInput
 import com.thermora.calculation.api.model.CalculationModel
 import com.thermora.calculation.api.model.CalculationOutput
 import com.thermora.models.externalcooling.legacy.ExternalCoolingLegacyModel
+import com.thermora.models.finnedhousing.legacy.FinnedHousingLegacyModel
 import com.thermora.models.internalmixing.legacy.InternalMixingLegacyModel
 import com.thermora.models.sealedhousing.legacy.SealedHousingLegacyModel
 
@@ -13,6 +14,7 @@ internal object DefaultModelConfiguration {
         listOf(
             SealedHousingLegacyModel(),
             InternalMixingLegacyModel(),
-            ExternalCoolingLegacyModel()
+            ExternalCoolingLegacyModel(),
+            FinnedHousingLegacyModel()
         )
 }

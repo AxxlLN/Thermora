@@ -66,13 +66,14 @@ class ThermoraCoreTest {
 
         val models = core.availableModels()
 
-        assertEquals(3, models.size)
+        assertEquals(4, models.size)
 
         assertEquals(
             setOf(
                 CalculationModelId("sealed-housing-legacy"),
                 CalculationModelId("internal-mixing-legacy"),
-                CalculationModelId("external-cooling-legacy")
+                CalculationModelId("external-cooling-legacy"),
+                CalculationModelId("finned-housing-legacy")
             ),
             models.map { it.id }.toSet()
         )
@@ -195,7 +196,7 @@ class ThermoraCoreTest {
 
 
     @Test
-    fun `default core registers all three legacy models`() {
+    fun `default core registers all four legacy models`() {
         val core = ThermoraCoreFactory.createDefault()
 
         val modelIds = core.availableModels()
@@ -206,7 +207,8 @@ class ThermoraCoreTest {
             setOf(
                 "sealed-housing-legacy",
                 "internal-mixing-legacy",
-                "external-cooling-legacy"
+                "external-cooling-legacy",
+                "finned-housing-legacy"
             ),
             modelIds
         )

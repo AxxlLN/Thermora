@@ -9,7 +9,6 @@ out/
 
 # Gradle local configuration
 gradle-app.setting
-!gradle-wrapper.jar
 
 # ==============================
 # Kotlin / JVM
@@ -19,6 +18,9 @@ gradle-app.setting
 *.jar
 *.war
 *.ear
+
+!gradle/wrapper/gradle-wrapper.jar
+
 hs_err_pid*
 replay_pid*
 

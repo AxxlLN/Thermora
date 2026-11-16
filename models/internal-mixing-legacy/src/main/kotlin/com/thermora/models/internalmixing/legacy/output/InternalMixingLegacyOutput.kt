@@ -14,12 +14,14 @@ import com.thermora.foundation.units.temperature.TemperatureDelta
  *
  * All absolute temperatures use Kelvin.
  */
-data class InternalMixingLegacyOutput(
+data class InternalMixingLegacyOutput @JvmOverloads constructor(
     val enclosureTemperature: Temperature,
     val heatedZoneTemperature: Temperature,
     val internalAirTemperature: Temperature,
     val elementTemperature: Temperature,
     val junctionTemperature: Temperature,
     val heatedZoneRise: TemperatureDelta,
-    val heatedZoneToAmbientResistance: ThermalResistance
+    val heatedZoneToAmbientResistance: ThermalResistance,
+    val geometryResults: InternalMixingGeometryResults? = null,
+    val heatTransferResults: InternalMixingHeatTransferResults? = null
 ) : CalculationOutput

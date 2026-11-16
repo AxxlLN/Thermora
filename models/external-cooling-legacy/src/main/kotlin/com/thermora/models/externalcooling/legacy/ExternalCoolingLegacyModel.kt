@@ -8,6 +8,7 @@ import com.thermora.foundation.common.diagnostic.Diagnostic
 import com.thermora.foundation.common.diagnostic.DiagnosticSeverity
 import com.thermora.foundation.common.result.CalculationResult
 import com.thermora.models.externalcooling.legacy.input.ExternalCoolingLegacyInput
+import com.thermora.models.externalcooling.legacy.internal.LegacyIntermediateCalculations
 import com.thermora.models.externalcooling.legacy.internal.ExternalCoolingLegacyValidator
 import com.thermora.models.externalcooling.legacy.internal.LegacyEnclosureRiseCurve
 import com.thermora.models.externalcooling.legacy.internal.LegacyEnclosureResistance
@@ -46,7 +47,7 @@ class ExternalCoolingLegacyModel :
 
     override fun validate(
         input: ExternalCoolingLegacyInput
-    ): ValidationReport = inputValidator.validate(input)
+    ): ValidationReport = inputValidator.validate(input).merge(LegacyIntermediateCalculations.validate(input))
 
     override fun calculate(
         input: ExternalCoolingLegacyInput
@@ -152,7 +153,7 @@ class ExternalCoolingLegacyModel :
             )
 
             CalculationResult.Success(
-                output,
+                LegacyIntermediateCalculations.attach(input, output),
                 listOf(
                     Diagnostic(
                         code = "EXTERNAL_COOLING_LEGACY_APPLICABILITY_UNKNOWN",
@@ -160,7 +161,7 @@ class ExternalCoolingLegacyModel :
                         severity = DiagnosticSeverity.WARNING,
                         source = descriptor.id.value
                     )
-                )
+                ) + LegacyIntermediateCalculations.warnings(input)
             )
         } catch (exception: IllegalArgumentException) {
             CalculationResult.Failure(

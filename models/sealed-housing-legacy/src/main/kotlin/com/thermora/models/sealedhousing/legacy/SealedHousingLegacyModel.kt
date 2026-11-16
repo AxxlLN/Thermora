@@ -12,6 +12,7 @@ import com.thermora.foundation.units.quantity.Quantity
 import com.thermora.foundation.units.temperature.Temperature
 import com.thermora.foundation.units.unit.StandardUnits
 import com.thermora.models.sealedhousing.legacy.input.SealedHousingLegacyInput
+import com.thermora.models.sealedhousing.legacy.internal.LegacyIntermediateCalculations
 import com.thermora.models.sealedhousing.legacy.internal.LegacyInputValidator
 import com.thermora.models.sealedhousing.legacy.internal.LegacyCaseRiseCurve
 import com.thermora.models.sealedhousing.legacy.internal.LegacyZoneRiseCurve
@@ -35,7 +36,7 @@ class SealedHousingLegacyModel :
     private val inputValidator = LegacyInputValidator(descriptor.id.value)
 
     override fun validate(input: SealedHousingLegacyInput): ValidationReport =
-        inputValidator.validate(input)
+        inputValidator.validate(input).merge(LegacyIntermediateCalculations.validate(input))
 
     override fun calculate(
         input: SealedHousingLegacyInput
@@ -113,7 +114,7 @@ class SealedHousingLegacyModel :
             )
 
             CalculationResult.Success(
-                value = output,
+                value = LegacyIntermediateCalculations.attach(input, output),
                 diagnostics = listOf(
                     Diagnostic(
                         code = "SEALED_LEGACY_APPLICABILITY_UNKNOWN",
@@ -121,7 +122,7 @@ class SealedHousingLegacyModel :
                         severity = DiagnosticSeverity.WARNING,
                         source = descriptor.id.value
                     )
-                )
+                ) + LegacyIntermediateCalculations.warnings(input)
             )
 
         } catch (exception: IllegalArgumentException) {

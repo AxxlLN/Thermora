@@ -5,7 +5,7 @@ import com.thermora.foundation.domain.thermal.ThermalResistance
 import com.thermora.foundation.units.temperature.Temperature
 import com.thermora.foundation.units.temperature.TemperatureDelta
 
-data class ExternalCoolingLegacyOutput(
+data class ExternalCoolingLegacyOutput @JvmOverloads constructor(
     val enclosureTemperature: Temperature,
     val heatedZoneTemperature: Temperature,
     val internalAirTemperature: Temperature,
@@ -14,5 +14,8 @@ data class ExternalCoolingLegacyOutput(
     val enclosureRise: TemperatureDelta,
     val heatedZoneRise: TemperatureDelta,
     val enclosureToAmbientResistance: ThermalResistance,
-    val heatedZoneToAmbientResistance: ThermalResistance
+    val heatedZoneToAmbientResistance: ThermalResistance,
+    val geometryResults: ExternalCoolingGeometryResults? = null,
+    val externalHeatTransfer: ExternalCoolingExternalHeatTransferResults? = null,
+    val internalHeatTransfer: ExternalCoolingInternalHeatTransferResults? = null
 ) : CalculationOutput

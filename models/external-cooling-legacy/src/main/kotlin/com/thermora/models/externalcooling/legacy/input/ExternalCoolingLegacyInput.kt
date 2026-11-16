@@ -7,10 +7,11 @@ import com.thermora.foundation.domain.thermal.CriticalElementThermalProperties
 import com.thermora.foundation.domain.thermal.ThermalSource
 import com.thermora.foundation.units.quantity.Quantity
 
-data class ExternalCoolingLegacyInput(
+data class ExternalCoolingLegacyInput @JvmOverloads constructor(
     val ambient: AmbientConditions,
     val source: ThermalSource,
     val heatedZone: HeatSourceGeometry,
     val criticalElement: CriticalElementThermalProperties,
-    val elementWithRadiatorArea: Quantity
+    val elementWithRadiatorArea: Quantity,
+    val heatTransfer: ExternalCoolingHeatTransferInput? = null
 ) : CalculationInput

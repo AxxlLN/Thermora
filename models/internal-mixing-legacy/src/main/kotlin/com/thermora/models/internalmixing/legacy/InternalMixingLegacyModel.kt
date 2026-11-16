@@ -11,6 +11,7 @@ import com.thermora.foundation.domain.thermal.ThermalResistance
 import com.thermora.foundation.units.quantity.Quantity
 import com.thermora.foundation.units.unit.StandardUnits
 import com.thermora.models.internalmixing.legacy.input.InternalMixingLegacyInput
+import com.thermora.models.internalmixing.legacy.internal.LegacyIntermediateCalculations
 import com.thermora.models.internalmixing.legacy.internal.LegacyElementTemperature
 import com.thermora.models.internalmixing.legacy.internal.LegacyHeatedZoneArea
 import com.thermora.models.internalmixing.legacy.internal.LegacyInputValidator
@@ -35,7 +36,7 @@ class InternalMixingLegacyModel :
 
     override fun validate(
         input: InternalMixingLegacyInput
-    ): ValidationReport = inputValidator.validate(input)
+    ): ValidationReport = inputValidator.validate(input).merge(LegacyIntermediateCalculations.validate(input))
 
     override fun calculate(
         input: InternalMixingLegacyInput
@@ -137,7 +138,7 @@ class InternalMixingLegacyModel :
             )
 
             CalculationResult.Success(
-                value = output,
+                value = LegacyIntermediateCalculations.attach(input, output),
                 diagnostics = listOf(
                     Diagnostic(
                         code = "INTERNAL_MIXING_LEGACY_APPLICABILITY_UNKNOWN",
@@ -151,7 +152,7 @@ class InternalMixingLegacyModel :
                         severity = DiagnosticSeverity.WARNING,
                         source = descriptor.id.value
                     )
-                )
+                ) + LegacyIntermediateCalculations.warnings(input)
             )
 
         } catch (exception: IllegalArgumentException) {

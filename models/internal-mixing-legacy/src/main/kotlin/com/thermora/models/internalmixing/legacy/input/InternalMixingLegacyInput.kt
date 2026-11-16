@@ -14,9 +14,10 @@ import com.thermora.foundation.units.quantity.Quantity
  *
  * The model reproduces the final Excel calculation branch.
  */
-data class InternalMixingLegacyInput(
+data class InternalMixingLegacyInput @JvmOverloads constructor(
     val sealedHousing: SealedHousingBoundarySnapshot,
     val heatedZone: HeatSourceGeometry,
     val criticalElement: CriticalElementThermalProperties,
-    val elementWithRadiatorArea: Quantity
+    val elementWithRadiatorArea: Quantity,
+    val heatTransfer: InternalMixingHeatTransferInput? = null
 ) : CalculationInput

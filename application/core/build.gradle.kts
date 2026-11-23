@@ -1,11 +1,13 @@
 plugins {
     kotlin("jvm")
     `java-library`
+    jacoco
 }
 
 dependencies {
     api(project(":calculation:api"))
     api(project(":foundation:common"))
+    api(project(":application:ports"))
 
     implementation(project(":calculation:engine"))
 
@@ -15,6 +17,7 @@ dependencies {
     api(project(":models:finned-housing-legacy"))
 
     testImplementation(kotlin("test"))
+    testImplementation(testFixtures(project(":application:ports")))
     testImplementation(project(":foundation:domain"))
     testImplementation(project(":foundation:units"))
 }
@@ -25,4 +28,13 @@ kotlin {
 
 tasks.test {
     useJUnitPlatform()
+    finalizedBy(tasks.jacocoTestReport)
+}
+
+tasks.jacocoTestReport {
+    dependsOn(tasks.test)
+    reports {
+        xml.required.set(true)
+        html.required.set(true)
+    }
 }

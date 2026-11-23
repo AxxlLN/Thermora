@@ -18,5 +18,6 @@ include(
     ":models:external-cooling-legacy",
     ":models:finned-housing-legacy",
     ":application:ports",
-    ":infrastructure:persistence-memory"
+    ":infrastructure:persistence-memory",
+    ":infrastructure:serialization"
 )

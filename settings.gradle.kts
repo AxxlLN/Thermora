@@ -19,5 +19,6 @@ include(
     ":models:finned-housing-legacy",
     ":application:ports",
     ":infrastructure:persistence-memory",
-    ":infrastructure:serialization"
+    ":infrastructure:serialization",
+    ":interfaces:cli"
 )

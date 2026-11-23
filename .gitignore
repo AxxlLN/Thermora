@@ -86,3 +86,56 @@ logs/
 
 /local/
 .cache/
+
+# ==============================
+# C++ / CMake
+# ==============================
+
+# CMake build directories
+cmake-build-*/
+**/cmake-build-*/
+cmake-build-*/
+**/CMakeFiles/
+**/CMakeCache.txt
+**/cmake_install.cmake
+**/Makefile
+**/build.ninja
+**/.ninja_deps
+**/.ninja_log
+
+# CMake generated files
+**/compile_commands.json
+**/CTestTestfile.cmake
+**/Testing/
+
+# ==============================
+# Qt 6
+# ==============================
+
+# Qt generated files
+**/moc_*.cpp
+**/ui_*.h
+**/qrc_*.cpp
+**/qrc_*.o
+
+# Qt Creator local configuration
+*.pro.user
+*.pro.user.*
+CMakeLists.txt.user
+CMakeLists.txt.user.*
+
+# ==============================
+# C++ / macOS
+# ==============================
+
+# Object files
+*.o
+*.obj
+
+# Static and dynamic libraries
+*.a
+*.dylib
+*.so
+
+# Debug symbols
+*.dSYM/

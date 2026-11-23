@@ -16,5 +16,7 @@ include(
     ":calculation:validation",
     ":models:internal-mixing-legacy",
     ":models:external-cooling-legacy",
-    ":models:finned-housing-legacy"
+    ":models:finned-housing-legacy",
+    ":application:ports",
+    ":infrastructure:persistence-memory"
 )

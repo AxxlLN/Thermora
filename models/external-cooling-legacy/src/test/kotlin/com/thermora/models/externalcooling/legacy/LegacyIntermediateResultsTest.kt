@@ -51,7 +51,7 @@ class LegacyIntermediateResultsTest {
     }
     @Test fun `invalid explicit configuration fails without successful partial trace`() {
         val input = IntermediateTestFixtures.input()
-        val config = input.heatTransfer!!
+        val config = assertNotNull(input.heatTransfer)
         val bad = listOf(config.copy(enclosureEmissivity=Double.NaN),config.copy(enclosureEmissivity=Double.POSITIVE_INFINITY),config.copy(enclosureEmissivity=Double.NEGATIVE_INFINITY),config.copy(enclosureEmissivity=0.0),config.copy(enclosureEmissivity=1.1),config.copy(wallGaps=config.wallGaps.drop(1)),
             config.copy(enclosureProbeRises=emptyList()),config.copy(wallGaps=config.wallGaps.map { it.copy(wallIndex=1) }),config.copy(wallGaps=config.wallGaps.map { it.copy(gap=Quantity(0.0,StandardUnits.METER)) }),config.copy(zoneProbeResistances=emptyList()),
             config.copy(wallGaps=config.wallGaps.map { it.copy(gap=Quantity(1.0,StandardUnits.WATT)) }))
@@ -64,26 +64,26 @@ class LegacyIntermediateResultsTest {
     @Test fun `manual resistance remains independent of computed reference resistance`() {
         val input = IntermediateTestFixtures.input()
         val a = output(input)
-        val config = input.heatTransfer!!
+        val config = assertNotNull(input.heatTransfer)
         val b = output(input.copy(heatTransfer=config.copy(zoneProbeResistances=List(3) { IntermediateTestFixtures.resistance(10.0) })))
-        assertEquals(a.internalHeatTransfer!!.zoneToEnclosureResistance,b.internalHeatTransfer!!.zoneToEnclosureResistance)
-        assertNotEquals(a.internalHeatTransfer!!.trials,b.internalHeatTransfer!!.trials)
+        assertEquals(assertNotNull(a.internalHeatTransfer).zoneToEnclosureResistance,assertNotNull(b.internalHeatTransfer).zoneToEnclosureResistance)
+        assertNotEquals(assertNotNull(a.internalHeatTransfer).trials,assertNotNull(b.internalHeatTransfer).trials)
         assertEquals(a.copy(internalHeatTransfer=null),b.copy(internalHeatTransfer=null))
     }
     @Test fun `wall order does not alter results`() {
         val input = IntermediateTestFixtures.input()
-        assertEquals(output(input),output(input.copy(heatTransfer=input.heatTransfer!!.copy(wallGaps=input.heatTransfer!!.wallGaps.reversed()))))
+        assertEquals(output(input),output(input.copy(heatTransfer=assertNotNull(input.heatTransfer).copy(wallGaps=assertNotNull(input.heatTransfer).wallGaps.reversed()))))
     }
     @Test fun `equivalent enclosure units preserve every intermediate value`() {
         val input = IntermediateTestFixtures.input()
-        val c = input.heatTransfer!!
+        val c = assertNotNull(input.heatTransfer)
         val e = c.enclosure
         val unit = com.thermora.foundation.units.unit.MeasurementUnit("mm",PhysicalDimension.LENGTH,0.001)
         val converted = e.copy(length=e.length.convertTo(unit),width=e.width.convertTo(unit),height=e.height.convertTo(unit))
         val a=output(input)
         val b=output(input.copy(heatTransfer=c.copy(enclosure=converted)))
         close(a.geometryResults!!.enclosureArea.baseValue,b.geometryResults!!.enclosureArea.baseValue)
-        close(a.internalHeatTransfer!!.zoneToEnclosureResistance.value.baseValue,b.internalHeatTransfer!!.zoneToEnclosureResistance.value.baseValue)
+        close(assertNotNull(a.internalHeatTransfer).zoneToEnclosureResistance.value.baseValue,assertNotNull(b.internalHeatTransfer).zoneToEnclosureResistance.value.baseValue)
         assertEquals(a.enclosureTemperature,b.enclosureTemperature)
     }
 
@@ -107,7 +107,7 @@ class LegacyIntermediateResultsTest {
     }
     @Test fun `airflow changes physical branch while final correlation stays independent`() {
         val input=IntermediateTestFixtures.input()
-        val c=input.heatTransfer!!
+        val c=assertNotNull(input.heatTransfer)
         val a=output(input)
         val b=output(input.copy(heatTransfer=c.copy(airflow=c.airflow.copy(velocity=Quantity(2.0,StandardUnits.METER_PER_SECOND)))))
         assertNotEquals(a.externalHeatTransfer,b.externalHeatTransfer)
@@ -116,7 +116,7 @@ class LegacyIntermediateResultsTest {
 
     @Test fun `caller mutation of input collections cannot alter an existing result`() {
         val input=IntermediateTestFixtures.input()
-        val original=input.heatTransfer!!
+        val original=assertNotNull(input.heatTransfer)
         val mutable=original.zoneProbeRises.toMutableList()
         val result=output(input.copy(heatTransfer=original.copy(zoneProbeRises=mutable)))
         mutable.clear()
@@ -135,7 +135,7 @@ class LegacyIntermediateResultsTest {
 
     @Test fun `zero airflow retains finite radiation only probes`() {
         val input=IntermediateTestFixtures.input()
-        val c=input.heatTransfer!!
+        val c=assertNotNull(input.heatTransfer)
         val result=output(input.copy(heatTransfer=c.copy(airflow=c.airflow.copy(velocity=Quantity(0.0,StandardUnits.METER_PER_SECOND)))))
         result.externalHeatTransfer!!.probes.forEach {
             assertEquals(0.0,it.convectionCoefficient.baseValue)
@@ -144,7 +144,7 @@ class LegacyIntermediateResultsTest {
     }
     @Test fun `overflow of explicit probe temperature returns numerical diagnostic`() {
         val input=IntermediateTestFixtures.input()
-        val bad=input.copy(heatTransfer=input.heatTransfer!!.copy(enclosureProbeRises=List(3) { IntermediateTestFixtures.delta(Double.MAX_VALUE) }))
+        val bad=input.copy(heatTransfer=assertNotNull(input.heatTransfer).copy(enclosureProbeRises=List(3) { IntermediateTestFixtures.delta(Double.MAX_VALUE) }))
         val failure=assertIs<CalculationResult.Failure>(ExternalCoolingLegacyModel().calculate(bad))
         assertEquals("EXTERNAL_COOLING_CALCULATION_ERROR",failure.diagnostics.single().code)
         assertEquals(DiagnosticSeverity.ERROR,failure.diagnostics.single().severity)

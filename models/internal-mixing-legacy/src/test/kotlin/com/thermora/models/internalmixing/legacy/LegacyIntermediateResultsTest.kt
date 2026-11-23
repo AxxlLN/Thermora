@@ -73,7 +73,7 @@ class LegacyIntermediateResultsTest {
     @Test fun `C05 radiation changes totals but never convection only resistance or finals`() {
         val input = IntermediateTestFixtures.input()
         val a = output(input)
-        val b = output(input.copy(heatTransfer = input.heatTransfer!!.copy(reducedEmissivity = 0.5)))
+        val b = output(input.copy(heatTransfer = assertNotNull(input.heatTransfer).copy(reducedEmissivity = 0.5)))
         val pa = a.heatTransferResults!!.probes.first()
         val pb = b.heatTransferResults!!.probes.first()
         assertNotEquals(pa.radiationCoefficient,pb.radiationCoefficient)
@@ -85,8 +85,8 @@ class LegacyIntermediateResultsTest {
     @Test fun `invalid trace parameters produce validation failure`() {
         val input = IntermediateTestFixtures.input()
         val model = InternalMixingLegacyModel()
-        for (config in listOf(input.heatTransfer!!.copy(reducedEmissivity=Double.NaN),
-            input.heatTransfer!!.copy(zoneProbeRises=emptyList()), input.heatTransfer!!.copy(zoneProbeRises=listOf(IntermediateTestFixtures.delta(0.0))))) {
+        for (config in listOf(assertNotNull(input.heatTransfer).copy(reducedEmissivity=Double.NaN),
+            assertNotNull(input.heatTransfer).copy(zoneProbeRises=emptyList()), assertNotNull(input.heatTransfer).copy(zoneProbeRises=listOf(IntermediateTestFixtures.delta(0.0))))) {
             val bad = input.copy(heatTransfer=config)
             assertFalse(model.validate(bad).isValid)
             assertIs<CalculationResult.Failure>(model.calculate(bad))
@@ -94,20 +94,20 @@ class LegacyIntermediateResultsTest {
     }
     @Test fun `equivalent flow units preserve probe results`() {
         val input = IntermediateTestFixtures.input()
-        val config = input.heatTransfer!!
+        val config = assertNotNull(input.heatTransfer)
         val fan = config.fan.copy(nominalVolumeFlowRate=config.fan.nominalVolumeFlowRate.convertTo(StandardUnits.CUBIC_METER_PER_SECOND))
         assertEquals(output(input),output(input.copy(heatTransfer=config.copy(fan=fan))))
     }
     @Test fun `nonpositive free volume gives diagnostic failure`() {
         val input = IntermediateTestFixtures.input()
-        val enclosure = input.heatTransfer!!.enclosure.copy(length=IntermediateTestFixtures.length(0.001))
-        val result = InternalMixingLegacyModel().calculate(input.copy(heatTransfer=input.heatTransfer!!.copy(enclosure=enclosure)))
+        val enclosure = assertNotNull(input.heatTransfer).enclosure.copy(length=IntermediateTestFixtures.length(0.001))
+        val result = InternalMixingLegacyModel().calculate(input.copy(heatTransfer=assertNotNull(input.heatTransfer).copy(enclosure=enclosure)))
         assertIs<CalculationResult.Failure>(result)
     }
 
     @Test fun `caller mutation of input collections cannot alter an existing result`() {
         val input=IntermediateTestFixtures.input()
-        val original=input.heatTransfer!!
+        val original=assertNotNull(input.heatTransfer)
         val mutable=original.zoneProbeRises.toMutableList()
         val result=output(input.copy(heatTransfer=original.copy(zoneProbeRises=mutable)))
         mutable.clear()

@@ -1,10 +1,16 @@
-#include <QApplication>
-#include <QPushButton>
 
-int main(int argc, char *argv[]) {
-    QApplication a(argc, argv);
-    QPushButton button("Hello world!", nullptr);
-    button.resize(200, 100);
-    button.show();
-    return QApplication::exec();
+#include <QApplication>
+#include "src/MainWindow.h"
+
+int main(int argc, char *argv[])
+{
+    QApplication app(argc, argv);
+
+    QApplication::setApplicationName("Thermora");
+    QApplication::setOrganizationName("Thermora");
+
+    MainWindow window;
+    window.show();
+
+    return app.exec();
 }

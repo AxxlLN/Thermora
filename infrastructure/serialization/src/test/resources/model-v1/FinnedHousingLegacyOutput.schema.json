@@ -1,0 +1,432 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:thermora.finned-housing.legacy.output:1",
+  "$ref": "#/$defs/FinnedHousingLegacyOutput",
+  "$defs": {
+    "FinnedHousingLegacyOutput": {
+      "type": "object",
+      "properties": {
+        "finalResults": {
+          "$ref": "#/$defs/FinnedHousingFinalResults"
+        },
+        "geometryResults": {
+          "$ref": "#/$defs/FinnedHousingGeometryResults"
+        },
+        "externalHeatTransfer": {
+          "$ref": "#/$defs/ExternalHeatTransferResults"
+        },
+        "internalHeatTransfer": {
+          "$ref": "#/$defs/InternalHeatTransferResults"
+        }
+      },
+      "required": [
+        "finalResults",
+        "geometryResults",
+        "externalHeatTransfer",
+        "internalHeatTransfer"
+      ],
+      "additionalProperties": false
+    },
+    "FinnedHousingFinalResults": {
+      "type": "object",
+      "properties": {
+        "enclosureRise": {
+          "$ref": "#/$defs/TemperatureDelta"
+        },
+        "enclosureToAmbientResistance": {
+          "$ref": "#/$defs/ThermalResistance"
+        },
+        "heatedZoneRise": {
+          "$ref": "#/$defs/TemperatureDelta"
+        },
+        "heatedZoneToAmbientResistance": {
+          "$ref": "#/$defs/ThermalResistance"
+        },
+        "enclosureTemperature": {
+          "$ref": "#/$defs/Temperature"
+        },
+        "heatedZoneTemperature": {
+          "$ref": "#/$defs/Temperature"
+        },
+        "internalAirTemperature": {
+          "$ref": "#/$defs/Temperature"
+        },
+        "elementTemperature": {
+          "$ref": "#/$defs/Temperature"
+        },
+        "junctionTemperature": {
+          "$ref": "#/$defs/Temperature"
+        }
+      },
+      "required": [
+        "enclosureRise",
+        "enclosureToAmbientResistance",
+        "heatedZoneRise",
+        "heatedZoneToAmbientResistance",
+        "enclosureTemperature",
+        "heatedZoneTemperature",
+        "internalAirTemperature",
+        "elementTemperature",
+        "junctionTemperature"
+      ],
+      "additionalProperties": false
+    },
+    "TemperatureDelta": {
+      "type": "object",
+      "properties": {
+        "kelvinDelta": {
+          "$ref": "#/$defs/Double"
+        }
+      },
+      "required": [
+        "kelvinDelta"
+      ],
+      "additionalProperties": false
+    },
+    "Double": {
+      "type": "number",
+      "$comment": "Finite binary64, signed zero and nonzero parse-underflow are semantic checks; numeric token <=64 ASCII chars."
+    },
+    "ThermalResistance": {
+      "$ref": "#/$defs/Quantity",
+      "$comment": "Existing constructor requires THERMAL_RESISTANCE dimension and positive baseValue."
+    },
+    "Quantity": {
+      "type": "object",
+      "properties": {
+        "value": {
+          "$ref": "#/$defs/Double"
+        },
+        "unit": {
+          "$ref": "#/$defs/MeasurementUnit"
+        }
+      },
+      "required": [
+        "value",
+        "unit"
+      ],
+      "additionalProperties": false
+    },
+    "MeasurementUnit": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "standard"
+            },
+            "id": {
+              "enum": [
+                "m",
+                "mm",
+                "cm",
+                "m2",
+                "cm2",
+                "m3",
+                "kg",
+                "g",
+                "s",
+                "min",
+                "Pa",
+                "kPa",
+                "MPa",
+                "W",
+                "kW",
+                "J",
+                "W/(m*K)",
+                "J/(kg*K)",
+                "kg/m3",
+                "W/m2",
+                "m/s",
+                "m3/s",
+                "m2/s",
+                "W/(m2*K)",
+                "K/W"
+              ]
+            }
+          },
+          "required": [
+            "kind",
+            "id"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "custom"
+            },
+            "symbol": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "dimension": {
+              "$ref": "#/$defs/PhysicalDimension"
+            },
+            "scaleToBase": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "offsetToBase": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "kind",
+            "symbol",
+            "dimension",
+            "scaleToBase",
+            "offsetToBase"
+          ],
+          "additionalProperties": false
+        }
+      ],
+      "$comment": "Symbol scalar validity/nonblank and frozen descriptor semantics are checked by Foundation V1."
+    },
+    "PhysicalDimension": {
+      "type": "object",
+      "properties": {
+        "length": {
+          "$ref": "#/$defs/Int"
+        },
+        "mass": {
+          "$ref": "#/$defs/Int"
+        },
+        "time": {
+          "$ref": "#/$defs/Int"
+        },
+        "electricCurrent": {
+          "$ref": "#/$defs/Int"
+        },
+        "thermodynamicTemperature": {
+          "$ref": "#/$defs/Int"
+        },
+        "amountOfSubstance": {
+          "$ref": "#/$defs/Int"
+        },
+        "luminousIntensity": {
+          "$ref": "#/$defs/Int"
+        }
+      },
+      "required": [
+        "length",
+        "mass",
+        "time",
+        "electricCurrent",
+        "thermodynamicTemperature",
+        "amountOfSubstance",
+        "luminousIntensity"
+      ],
+      "additionalProperties": false
+    },
+    "Int": {
+      "type": "integer",
+      "minimum": -2147483648,
+      "maximum": 2147483647,
+      "$comment": "Integer literal only; fractional and exponent notation rejected."
+    },
+    "Temperature": {
+      "type": "object",
+      "properties": {
+        "kelvin": {
+          "type": "number",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "kelvin"
+      ],
+      "additionalProperties": false
+    },
+    "FinnedHousingGeometryResults": {
+      "type": "object",
+      "properties": {
+        "finnedSurfaceArea": {
+          "$ref": "#/$defs/Quantity"
+        },
+        "smoothSideArea": {
+          "$ref": "#/$defs/Quantity"
+        },
+        "smoothFaceArea": {
+          "$ref": "#/$defs/Quantity"
+        },
+        "smoothSurfaceArea": {
+          "$ref": "#/$defs/Quantity"
+        },
+        "originalEnclosureArea": {
+          "$ref": "#/$defs/Quantity"
+        },
+        "heatedZoneArea": {
+          "$ref": "#/$defs/Quantity"
+        },
+        "heatedZoneFaceAreaXY": {
+          "$ref": "#/$defs/Quantity"
+        },
+        "heatedZoneFaceAreaXZ": {
+          "$ref": "#/$defs/Quantity"
+        },
+        "heatedZoneFaceAreaYZ": {
+          "$ref": "#/$defs/Quantity"
+        }
+      },
+      "required": [
+        "finnedSurfaceArea",
+        "smoothSideArea",
+        "smoothFaceArea",
+        "smoothSurfaceArea",
+        "originalEnclosureArea",
+        "heatedZoneArea",
+        "heatedZoneFaceAreaXY",
+        "heatedZoneFaceAreaXZ",
+        "heatedZoneFaceAreaYZ"
+      ],
+      "additionalProperties": false
+    },
+    "ExternalHeatTransferResults": {
+      "type": "object",
+      "properties": {
+        "probes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ExternalHeatTransferProbe"
+          },
+          "maxItems": 256
+        }
+      },
+      "required": [
+        "probes"
+      ],
+      "additionalProperties": false
+    },
+    "ExternalHeatTransferProbe": {
+      "type": "object",
+      "properties": {
+        "enclosureRise": {
+          "$ref": "#/$defs/TemperatureDelta"
+        },
+        "smoothMeanTemperature": {
+          "$ref": "#/$defs/Temperature"
+        },
+        "smoothRadiationCoefficient": {
+          "$ref": "#/$defs/Quantity"
+        },
+        "smoothConvectionCoefficient": {
+          "$ref": "#/$defs/Quantity"
+        },
+        "channelParameter": {
+          "$ref": "#/$defs/Double"
+        },
+        "channelCorrection": {
+          "$ref": "#/$defs/Double"
+        },
+        "channelAirTemperature": {
+          "$ref": "#/$defs/Temperature"
+        },
+        "finnedMeanTemperature": {
+          "$ref": "#/$defs/Temperature"
+        },
+        "finnedRadiationCoefficient": {
+          "$ref": "#/$defs/Quantity"
+        },
+        "finnedConvectionCoefficient": {
+          "$ref": "#/$defs/Quantity"
+        },
+        "enclosureToAmbientResistance": {
+          "$ref": "#/$defs/ThermalResistance"
+        },
+        "dissipatedPower": {
+          "$ref": "#/$defs/Quantity"
+        }
+      },
+      "required": [
+        "enclosureRise",
+        "smoothMeanTemperature",
+        "smoothRadiationCoefficient",
+        "smoothConvectionCoefficient",
+        "channelParameter",
+        "channelCorrection",
+        "channelAirTemperature",
+        "finnedMeanTemperature",
+        "finnedRadiationCoefficient",
+        "finnedConvectionCoefficient",
+        "enclosureToAmbientResistance",
+        "dissipatedPower"
+      ],
+      "additionalProperties": false
+    },
+    "InternalHeatTransferResults": {
+      "type": "object",
+      "properties": {
+        "enclosureTemperature": {
+          "$ref": "#/$defs/Temperature"
+        },
+        "referenceZoneTemperature": {
+          "$ref": "#/$defs/Temperature"
+        },
+        "meanGapTemperature": {
+          "$ref": "#/$defs/Temperature"
+        },
+        "reducedEmissivity": {
+          "$ref": "#/$defs/Double"
+        },
+        "radiationCoefficient": {
+          "$ref": "#/$defs/Quantity"
+        },
+        "wallConvectionCoefficients": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Quantity"
+          },
+          "maxItems": 256
+        },
+        "zoneToEnclosureResistance": {
+          "$ref": "#/$defs/ThermalResistance"
+        },
+        "trialResults": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/InternalHeatTransferProbe"
+          },
+          "maxItems": 256
+        }
+      },
+      "required": [
+        "enclosureTemperature",
+        "referenceZoneTemperature",
+        "meanGapTemperature",
+        "reducedEmissivity",
+        "radiationCoefficient",
+        "wallConvectionCoefficients",
+        "zoneToEnclosureResistance",
+        "trialResults"
+      ],
+      "additionalProperties": false
+    },
+    "InternalHeatTransferProbe": {
+      "type": "object",
+      "properties": {
+        "zoneTemperature": {
+          "$ref": "#/$defs/Temperature"
+        },
+        "zoneRise": {
+          "$ref": "#/$defs/TemperatureDelta"
+        },
+        "resistance": {
+          "$ref": "#/$defs/ThermalResistance"
+        },
+        "dissipatedPower": {
+          "$ref": "#/$defs/Quantity"
+        }
+      },
+      "required": [
+        "zoneTemperature",
+        "zoneRise",
+        "resistance",
+        "dissipatedPower"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

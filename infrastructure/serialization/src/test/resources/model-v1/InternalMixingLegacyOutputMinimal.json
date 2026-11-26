@@ -1,0 +1,1 @@
+{"enclosureTemperature":{"kelvin":475.25},"heatedZoneTemperature":{"kelvin":476.25},"internalAirTemperature":{"kelvin":477.25},"elementTemperature":{"kelvin":478.25},"junctionTemperature":{"kelvin":479.25},"heatedZoneRise":{"kelvinDelta":180.5},"heatedZoneToAmbientResistance":{"value":181.75,"unit":{"kind":"standard","id":"K/W"}},"geometryResults":null,"heatTransferResults":null}

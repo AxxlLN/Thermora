@@ -1,0 +1,28 @@
+import com.thermora.application.ports.codec.SnapshotCodec
+import com.thermora.infrastructure.serialization.registry.StandardSnapshotCodecs
+import com.thermora.infrastructure.serialization.sealedhousing.legacy.SealedHousingLegacyInputCodec
+import com.thermora.models.sealedhousing.legacy.input.SealedHousingLegacyInput
+import com.thermora.infrastructure.serialization.sealedhousing.legacy.SealedHousingLegacyOutputCodec
+import com.thermora.models.sealedhousing.legacy.output.SealedHousingLegacyOutput
+import com.thermora.infrastructure.serialization.internalmixing.legacy.InternalMixingLegacyInputCodec
+import com.thermora.models.internalmixing.legacy.input.InternalMixingLegacyInput
+import com.thermora.infrastructure.serialization.internalmixing.legacy.InternalMixingLegacyOutputCodec
+import com.thermora.models.internalmixing.legacy.output.InternalMixingLegacyOutput
+import com.thermora.infrastructure.serialization.externalcooling.legacy.ExternalCoolingLegacyInputCodec
+import com.thermora.models.externalcooling.legacy.input.ExternalCoolingLegacyInput
+import com.thermora.infrastructure.serialization.externalcooling.legacy.ExternalCoolingLegacyOutputCodec
+import com.thermora.models.externalcooling.legacy.output.ExternalCoolingLegacyOutput
+import com.thermora.infrastructure.serialization.finnedhousing.legacy.FinnedHousingLegacyInputCodec
+import com.thermora.models.finnedhousing.legacy.input.FinnedHousingLegacyInput
+import com.thermora.infrastructure.serialization.finnedhousing.legacy.FinnedHousingLegacyOutputCodec
+import com.thermora.models.finnedhousing.legacy.output.FinnedHousingLegacyOutput
+
+val sealedhousingInput: SnapshotCodec<SealedHousingLegacyInput> = SealedHousingLegacyInputCodec()
+val sealedhousingOutput: SnapshotCodec<SealedHousingLegacyOutput> = SealedHousingLegacyOutputCodec()
+val internalmixingInput: SnapshotCodec<InternalMixingLegacyInput> = InternalMixingLegacyInputCodec()
+val internalmixingOutput: SnapshotCodec<InternalMixingLegacyOutput> = InternalMixingLegacyOutputCodec()
+val externalcoolingInput: SnapshotCodec<ExternalCoolingLegacyInput> = ExternalCoolingLegacyInputCodec()
+val externalcoolingOutput: SnapshotCodec<ExternalCoolingLegacyOutput> = ExternalCoolingLegacyOutputCodec()
+val finnedhousingInput: SnapshotCodec<FinnedHousingLegacyInput> = FinnedHousingLegacyInputCodec()
+val finnedhousingOutput: SnapshotCodec<FinnedHousingLegacyOutput> = FinnedHousingLegacyOutputCodec()
+val standardSchemas = StandardSnapshotCodecs.all().map { it.schema }

@@ -7,7 +7,9 @@ import java.util.ArrayDeque
 /**
  * Tracks the number of direct elements in each JSON array.
  */
-internal class JsonArrayLimits {
+internal class JsonArrayLimits(
+    private val onSizeLimit: () -> Nothing = { throw IllegalArgumentException("JSON array exceeds maximum element count") }
+) {
 
     companion object {
         const val MAX_ARRAY_ELEMENTS = 256
@@ -62,8 +64,6 @@ internal class JsonArrayLimits {
 
         parent.elementCount++
 
-        require(parent.elementCount <= MAX_ARRAY_ELEMENTS) {
-            "JSON array exceeds maximum element count"
-        }
+        if (parent.elementCount > MAX_ARRAY_ELEMENTS) onSizeLimit()
     }
 }

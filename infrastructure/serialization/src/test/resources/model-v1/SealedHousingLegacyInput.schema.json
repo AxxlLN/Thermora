@@ -1,0 +1,399 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:thermora.sealed-housing.legacy.input:1",
+  "$ref": "#/$defs/SealedHousingLegacyInput",
+  "$defs": {
+    "SealedHousingLegacyInput": {
+      "type": "object",
+      "properties": {
+        "ambient": {
+          "$ref": "#/$defs/AmbientConditions"
+        },
+        "source": {
+          "$ref": "#/$defs/ThermalSource"
+        },
+        "heatedZone": {
+          "$ref": "#/$defs/HeatSourceGeometry"
+        },
+        "criticalElement": {
+          "$ref": "#/$defs/CriticalElementThermalProperties"
+        },
+        "elementWithRadiatorArea": {
+          "$ref": "#/$defs/Quantity"
+        },
+        "heatTransfer": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SealedHousingHeatTransferInput"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "ambient",
+        "source",
+        "heatedZone",
+        "criticalElement",
+        "elementWithRadiatorArea",
+        "heatTransfer"
+      ],
+      "additionalProperties": false
+    },
+    "AmbientConditions": {
+      "type": "object",
+      "properties": {
+        "temperature": {
+          "$ref": "#/$defs/Temperature"
+        }
+      },
+      "required": [
+        "temperature"
+      ],
+      "additionalProperties": false,
+      "$comment": "Existing Domain constructor invariants apply. Derived getters are not serialized."
+    },
+    "Temperature": {
+      "type": "object",
+      "properties": {
+        "kelvin": {
+          "type": "number",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "kelvin"
+      ],
+      "additionalProperties": false
+    },
+    "ThermalSource": {
+      "type": "object",
+      "properties": {
+        "power": {
+          "$ref": "#/$defs/Quantity"
+        }
+      },
+      "required": [
+        "power"
+      ],
+      "additionalProperties": false,
+      "$comment": "Existing Domain constructor invariants apply. Derived getters are not serialized."
+    },
+    "Quantity": {
+      "type": "object",
+      "properties": {
+        "value": {
+          "$ref": "#/$defs/Double"
+        },
+        "unit": {
+          "$ref": "#/$defs/MeasurementUnit"
+        }
+      },
+      "required": [
+        "value",
+        "unit"
+      ],
+      "additionalProperties": false
+    },
+    "Double": {
+      "type": "number",
+      "$comment": "Finite binary64, signed zero and nonzero parse-underflow are semantic checks; numeric token <=64 ASCII chars."
+    },
+    "MeasurementUnit": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "standard"
+            },
+            "id": {
+              "enum": [
+                "m",
+                "mm",
+                "cm",
+                "m2",
+                "cm2",
+                "m3",
+                "kg",
+                "g",
+                "s",
+                "min",
+                "Pa",
+                "kPa",
+                "MPa",
+                "W",
+                "kW",
+                "J",
+                "W/(m*K)",
+                "J/(kg*K)",
+                "kg/m3",
+                "W/m2",
+                "m/s",
+                "m3/s",
+                "m2/s",
+                "W/(m2*K)",
+                "K/W"
+              ]
+            }
+          },
+          "required": [
+            "kind",
+            "id"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "custom"
+            },
+            "symbol": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "dimension": {
+              "$ref": "#/$defs/PhysicalDimension"
+            },
+            "scaleToBase": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "offsetToBase": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "kind",
+            "symbol",
+            "dimension",
+            "scaleToBase",
+            "offsetToBase"
+          ],
+          "additionalProperties": false
+        }
+      ],
+      "$comment": "Symbol scalar validity/nonblank and frozen descriptor semantics are checked by Foundation V1."
+    },
+    "PhysicalDimension": {
+      "type": "object",
+      "properties": {
+        "length": {
+          "$ref": "#/$defs/Int"
+        },
+        "mass": {
+          "$ref": "#/$defs/Int"
+        },
+        "time": {
+          "$ref": "#/$defs/Int"
+        },
+        "electricCurrent": {
+          "$ref": "#/$defs/Int"
+        },
+        "thermodynamicTemperature": {
+          "$ref": "#/$defs/Int"
+        },
+        "amountOfSubstance": {
+          "$ref": "#/$defs/Int"
+        },
+        "luminousIntensity": {
+          "$ref": "#/$defs/Int"
+        }
+      },
+      "required": [
+        "length",
+        "mass",
+        "time",
+        "electricCurrent",
+        "thermodynamicTemperature",
+        "amountOfSubstance",
+        "luminousIntensity"
+      ],
+      "additionalProperties": false
+    },
+    "Int": {
+      "type": "integer",
+      "minimum": -2147483648,
+      "maximum": 2147483647,
+      "$comment": "Integer literal only; fractional and exponent notation rejected."
+    },
+    "HeatSourceGeometry": {
+      "type": "object",
+      "properties": {
+        "length": {
+          "$ref": "#/$defs/Quantity"
+        },
+        "width": {
+          "$ref": "#/$defs/Quantity"
+        },
+        "height": {
+          "$ref": "#/$defs/Quantity"
+        },
+        "volumeFillCoefficient": {
+          "$ref": "#/$defs/Double"
+        }
+      },
+      "required": [
+        "length",
+        "width",
+        "height",
+        "volumeFillCoefficient"
+      ],
+      "additionalProperties": false,
+      "$comment": "Existing Domain constructor invariants apply. Derived getters are not serialized."
+    },
+    "CriticalElementThermalProperties": {
+      "type": "object",
+      "properties": {
+        "power": {
+          "$ref": "#/$defs/Quantity"
+        },
+        "transitionToCaseResistance": {
+          "$ref": "#/$defs/ThermalResistance"
+        },
+        "caseToRadiatorResistance": {
+          "$ref": "#/$defs/ThermalResistance"
+        }
+      },
+      "required": [
+        "power",
+        "transitionToCaseResistance",
+        "caseToRadiatorResistance"
+      ],
+      "additionalProperties": false,
+      "$comment": "Existing Domain constructor invariants apply. Derived getters are not serialized."
+    },
+    "ThermalResistance": {
+      "$ref": "#/$defs/Quantity",
+      "$comment": "Existing constructor requires THERMAL_RESISTANCE dimension and positive baseValue."
+    },
+    "SealedHousingHeatTransferInput": {
+      "type": "object",
+      "properties": {
+        "enclosure": {
+          "$ref": "#/$defs/EnclosureGeometry"
+        },
+        "enclosureEmissivity": {
+          "$ref": "#/$defs/Double"
+        },
+        "enclosureReferenceRise": {
+          "$ref": "#/$defs/TemperatureDelta"
+        },
+        "enclosureProbeResistances": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ThermalResistance"
+          },
+          "maxItems": 256
+        },
+        "enclosureProbeRises": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/TemperatureDelta"
+          },
+          "maxItems": 256
+        },
+        "referenceZoneTemperature": {
+          "$ref": "#/$defs/Temperature"
+        },
+        "wallGaps": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/SealedHousingWallGap"
+          },
+          "maxItems": 256
+        },
+        "zoneProbeRises": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/TemperatureDelta"
+          },
+          "maxItems": 256
+        },
+        "zoneProbeResistances": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ThermalResistance"
+          },
+          "maxItems": 256
+        }
+      },
+      "required": [
+        "enclosure",
+        "enclosureEmissivity",
+        "enclosureReferenceRise",
+        "enclosureProbeResistances",
+        "enclosureProbeRises",
+        "referenceZoneTemperature",
+        "wallGaps",
+        "zoneProbeRises",
+        "zoneProbeResistances"
+      ],
+      "additionalProperties": false
+    },
+    "EnclosureGeometry": {
+      "type": "object",
+      "properties": {
+        "length": {
+          "$ref": "#/$defs/Quantity"
+        },
+        "width": {
+          "$ref": "#/$defs/Quantity"
+        },
+        "height": {
+          "$ref": "#/$defs/Quantity"
+        }
+      },
+      "required": [
+        "length",
+        "width",
+        "height"
+      ],
+      "additionalProperties": false,
+      "$comment": "Existing Domain constructor invariants apply. Derived getters are not serialized."
+    },
+    "TemperatureDelta": {
+      "type": "object",
+      "properties": {
+        "kelvinDelta": {
+          "$ref": "#/$defs/Double"
+        }
+      },
+      "required": [
+        "kelvinDelta"
+      ],
+      "additionalProperties": false
+    },
+    "SealedHousingWallGap": {
+      "type": "object",
+      "properties": {
+        "wallIndex": {
+          "$ref": "#/$defs/Int"
+        },
+        "gap": {
+          "$ref": "#/$defs/Quantity"
+        },
+        "orientation": {
+          "$ref": "#/$defs/WallOrientation"
+        }
+      },
+      "required": [
+        "wallIndex",
+        "gap",
+        "orientation"
+      ],
+      "additionalProperties": false
+    },
+    "WallOrientation": {
+      "enum": [
+        "vertical",
+        "horizontal-top",
+        "horizontal-bottom"
+      ]
+    }
+  }
+}

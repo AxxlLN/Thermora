@@ -104,6 +104,11 @@ internal class StrictJsonReader private constructor(
         token
     }
 
+    fun currentToken(): JsonToken? {
+        checkUsable()
+        return parser.currentToken()
+    }
+
     fun expect(token: JsonToken) = readToken {
         requirePayload(parser.currentToken() == token, "Expected $token, got ${parser.currentToken()}")
     }

@@ -13,7 +13,7 @@ import java.util.ArrayDeque
 internal class StrictJsonWriter private constructor(
     private val generator: JsonGenerator
 ) {
-    private val arrayLimits = JsonArrayLimits()
+    private val arrayLimits = JsonArrayLimits { throw JsonWriteLimitFailure("JSON array exceeds maximum element count") }
     private val pendingFields = ArrayDeque<Boolean>()
     private var failed = false
     private var finished = false
@@ -63,7 +63,7 @@ internal class StrictJsonWriter private constructor(
 
     fun fieldName(name: String) = write {
         JsonUnicodeValidator.validate(name)
-        require(name.length <= StrictJsonFactory.MAX_NAME_LENGTH) { "JSON field name exceeds maximum length" }
+        requireJsonWriteLimit(name.length <= StrictJsonFactory.MAX_NAME_LENGTH, "JSON field name exceeds maximum length")
         generator.writeFieldName(name)
         pendingFields.removeLast()
         pendingFields.addLast(true)
@@ -71,7 +71,7 @@ internal class StrictJsonWriter private constructor(
 
     fun string(value: String) = writeValue(JsonToken.VALUE_STRING) {
         JsonUnicodeValidator.validate(value)
-        require(value.length <= StrictJsonFactory.MAX_STRING_LENGTH) { "JSON string exceeds maximum length" }
+        requireJsonWriteLimit(value.length <= StrictJsonFactory.MAX_STRING_LENGTH, "JSON string exceeds maximum length")
         generator.writeString(value)
     }
 
@@ -139,9 +139,8 @@ internal class StrictJsonWriter private constructor(
         }
 
         private inline fun append(length: Int, characterAt: (Int) -> Char) {
-            require(output.length.toLong() + length <= JsonInputLimits.MAX_JSON_BYTES) {
-                "JSON output exceeds maximum UTF-16 length"
-            }
+            requireJsonWriteLimit(output.length.toLong() + length <= JsonInputLimits.MAX_JSON_BYTES,
+                "JSON output exceeds maximum UTF-16 length")
             var bytes = byteCount
             var pending = pendingHighSurrogate
             repeat(length) { index ->
@@ -158,7 +157,7 @@ internal class StrictJsonWriter private constructor(
                         else -> 3
                     }
                 }
-                require(bytes <= JsonInputLimits.MAX_JSON_BYTES) { "JSON output exceeds maximum UTF-8 size" }
+                requireJsonWriteLimit(bytes <= JsonInputLimits.MAX_JSON_BYTES, "JSON output exceeds maximum UTF-8 size")
             }
             repeat(length) { output.append(characterAt(it)) }
             byteCount = bytes

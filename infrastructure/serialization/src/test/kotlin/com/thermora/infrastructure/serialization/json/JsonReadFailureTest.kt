@@ -76,7 +76,7 @@ class JsonReadFailureTest {
 
     @Test
     fun `failure is an IllegalArgumentException`() {
-        val failure = JsonReadFailure.payload(
+        val failure: Throwable = JsonReadFailure.payload(
             path = "$",
             detail = "Invalid JSON"
         )

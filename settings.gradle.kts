@@ -20,9 +20,7 @@ include(
     ":application:ports",
     ":infrastructure:persistence-memory",
     ":infrastructure:serialization",
-    ":interfaces:cli"
+    ":interfaces:cli",
+    ":models:perforated-housing-legacy",
+    ":models:forced-cooling-legacy"
 )
-
-include(":models:perforated-housing-legacy")
-
-include(":models:forced-cooling-legacy")

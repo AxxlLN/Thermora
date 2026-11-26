@@ -8,6 +8,10 @@ import com.thermora.models.finnedhousing.legacy.FinnedHousingLegacyModel
 import com.thermora.models.internalmixing.legacy.InternalMixingLegacyModel
 import com.thermora.models.sealedhousing.legacy.SealedHousingLegacyModel
 
+import com.thermora.models.perforatedhousing.legacy.PerforatedHousingLegacyModel
+
+import com.thermora.models.forcedcooling.legacy.ForcedCoolingLegacyModel
+
 internal object DefaultModelConfiguration {
 
     fun models(): List<CalculationModel<out CalculationInput, out CalculationOutput>> =
@@ -15,6 +19,8 @@ internal object DefaultModelConfiguration {
             SealedHousingLegacyModel(),
             InternalMixingLegacyModel(),
             ExternalCoolingLegacyModel(),
-            FinnedHousingLegacyModel()
+            FinnedHousingLegacyModel(),
+            PerforatedHousingLegacyModel(),
+            ForcedCoolingLegacyModel()
         )
 }

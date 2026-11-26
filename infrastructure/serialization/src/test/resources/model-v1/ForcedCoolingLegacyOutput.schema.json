@@ -1,0 +1,415 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:thermora.forced-cooling.legacy.output:1",
+  "$ref": "#/$defs/ForcedCoolingLegacyOutput",
+  "$defs": {
+    "ForcedCoolingLegacyOutput": {
+      "type": "object",
+      "properties": {
+        "geometry": {
+          "$ref": "#/$defs/ForcedCoolingGeometryResults"
+        },
+        "heatTransfer": {
+          "$ref": "#/$defs/ForcedCoolingHeatTransferResults"
+        },
+        "airBalance": {
+          "$ref": "#/$defs/ForcedCoolingAirBalanceResults"
+        },
+        "convergence": {
+          "$ref": "#/$defs/ForcedCoolingConvergenceResults"
+        },
+        "nextStep": {
+          "$ref": "#/$defs/ForcedCoolingNextStep"
+        },
+        "finalResults": {
+          "$ref": "#/$defs/ForcedCoolingFinalResults"
+        }
+      },
+      "required": [
+        "geometry",
+        "heatTransfer",
+        "airBalance",
+        "convergence",
+        "nextStep",
+        "finalResults"
+      ],
+      "additionalProperties": false
+    },
+    "ForcedCoolingGeometryResults": {
+      "type": "object",
+      "properties": {
+        "enclosureArea": {
+          "$ref": "#/$defs/Quantity"
+        },
+        "heatedZoneArea": {
+          "$ref": "#/$defs/Quantity"
+        },
+        "freeAirVolume": {
+          "$ref": "#/$defs/Quantity"
+        }
+      },
+      "required": [
+        "enclosureArea",
+        "heatedZoneArea",
+        "freeAirVolume"
+      ],
+      "additionalProperties": false
+    },
+    "Quantity": {
+      "type": "object",
+      "properties": {
+        "value": {
+          "$ref": "#/$defs/Double"
+        },
+        "unit": {
+          "$ref": "#/$defs/MeasurementUnit"
+        }
+      },
+      "required": [
+        "value",
+        "unit"
+      ],
+      "additionalProperties": false
+    },
+    "Double": {
+      "type": "number",
+      "$comment": "Finite binary64, signed zero and nonzero parse-underflow are semantic checks; numeric token <=64 ASCII chars."
+    },
+    "MeasurementUnit": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "standard"
+            },
+            "id": {
+              "enum": [
+                "m",
+                "mm",
+                "cm",
+                "m2",
+                "cm2",
+                "m3",
+                "kg",
+                "g",
+                "s",
+                "min",
+                "Pa",
+                "kPa",
+                "MPa",
+                "W",
+                "kW",
+                "J",
+                "W/(m*K)",
+                "J/(kg*K)",
+                "kg/m3",
+                "W/m2",
+                "m/s",
+                "m3/s",
+                "m2/s",
+                "W/(m2*K)",
+                "K/W"
+              ]
+            }
+          },
+          "required": [
+            "kind",
+            "id"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "custom"
+            },
+            "symbol": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "dimension": {
+              "$ref": "#/$defs/PhysicalDimension"
+            },
+            "scaleToBase": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "offsetToBase": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "kind",
+            "symbol",
+            "dimension",
+            "scaleToBase",
+            "offsetToBase"
+          ],
+          "additionalProperties": false
+        }
+      ],
+      "$comment": "Symbol scalar validity/nonblank and frozen descriptor semantics are checked by Foundation V1."
+    },
+    "PhysicalDimension": {
+      "type": "object",
+      "properties": {
+        "length": {
+          "$ref": "#/$defs/Int"
+        },
+        "mass": {
+          "$ref": "#/$defs/Int"
+        },
+        "time": {
+          "$ref": "#/$defs/Int"
+        },
+        "electricCurrent": {
+          "$ref": "#/$defs/Int"
+        },
+        "thermodynamicTemperature": {
+          "$ref": "#/$defs/Int"
+        },
+        "amountOfSubstance": {
+          "$ref": "#/$defs/Int"
+        },
+        "luminousIntensity": {
+          "$ref": "#/$defs/Int"
+        }
+      },
+      "required": [
+        "length",
+        "mass",
+        "time",
+        "electricCurrent",
+        "thermodynamicTemperature",
+        "amountOfSubstance",
+        "luminousIntensity"
+      ],
+      "additionalProperties": false
+    },
+    "Int": {
+      "type": "integer",
+      "minimum": -2147483648,
+      "maximum": 2147483647,
+      "$comment": "Integer literal only; fractional and exponent notation rejected."
+    },
+    "ForcedCoolingHeatTransferResults": {
+      "type": "object",
+      "properties": {
+        "convectionMeanTemperature": {
+          "$ref": "#/$defs/Temperature"
+        },
+        "densityMeanTemperature": {
+          "$ref": "#/$defs/Temperature"
+        },
+        "airVelocity": {
+          "$ref": "#/$defs/Quantity"
+        },
+        "kinematicViscosity": {
+          "$ref": "#/$defs/Quantity"
+        },
+        "airDensity": {
+          "$ref": "#/$defs/Quantity"
+        },
+        "radiationFunction": {
+          "$ref": "#/$defs/Quantity"
+        },
+        "radiationCoefficient": {
+          "$ref": "#/$defs/Quantity"
+        },
+        "convectionCoefficient": {
+          "$ref": "#/$defs/Quantity"
+        }
+      },
+      "required": [
+        "convectionMeanTemperature",
+        "densityMeanTemperature",
+        "airVelocity",
+        "kinematicViscosity",
+        "airDensity",
+        "radiationFunction",
+        "radiationCoefficient",
+        "convectionCoefficient"
+      ],
+      "additionalProperties": false
+    },
+    "Temperature": {
+      "type": "object",
+      "properties": {
+        "kelvin": {
+          "type": "number",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "kelvin"
+      ],
+      "additionalProperties": false
+    },
+    "ForcedCoolingAirBalanceResults": {
+      "type": "object",
+      "properties": {
+        "enclosurePower": {
+          "$ref": "#/$defs/Quantity"
+        },
+        "initialAirPower": {
+          "$ref": "#/$defs/Quantity"
+        },
+        "airRise": {
+          "$ref": "#/$defs/TemperatureDelta"
+        },
+        "calculatedZoneRise": {
+          "$ref": "#/$defs/TemperatureDelta"
+        },
+        "calculatedEnclosureRise": {
+          "$ref": "#/$defs/TemperatureDelta"
+        },
+        "calculatedAirPower": {
+          "$ref": "#/$defs/Quantity"
+        }
+      },
+      "required": [
+        "enclosurePower",
+        "initialAirPower",
+        "airRise",
+        "calculatedZoneRise",
+        "calculatedEnclosureRise",
+        "calculatedAirPower"
+      ],
+      "additionalProperties": false
+    },
+    "TemperatureDelta": {
+      "type": "object",
+      "properties": {
+        "kelvinDelta": {
+          "$ref": "#/$defs/Double"
+        }
+      },
+      "required": [
+        "kelvinDelta"
+      ],
+      "additionalProperties": false
+    },
+    "ForcedCoolingConvergenceResults": {
+      "type": "object",
+      "properties": {
+        "enclosureDifference": {
+          "$ref": "#/$defs/TemperatureDelta"
+        },
+        "zoneDifference": {
+          "$ref": "#/$defs/TemperatureDelta"
+        },
+        "airPowerDifference": {
+          "$ref": "#/$defs/Quantity"
+        },
+        "enclosurePercent": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Double"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "zonePercent": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Double"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "airPowerPercent": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Double"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "withinThreePercent": {
+          "type": ["boolean", "null"]
+        },
+        "withinOnePercent": {
+          "type": ["boolean", "null"]
+        }
+      },
+      "required": [
+        "enclosureDifference",
+        "zoneDifference",
+        "airPowerDifference",
+        "enclosurePercent",
+        "zonePercent",
+        "airPowerPercent",
+        "withinThreePercent",
+        "withinOnePercent"
+      ],
+      "additionalProperties": false
+    },
+    "ForcedCoolingNextStep": {
+      "type": "object",
+      "properties": {
+        "enclosureTemperature": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Temperature"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "zoneTemperature": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Temperature"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "enclosureTemperature",
+        "zoneTemperature"
+      ],
+      "additionalProperties": false
+    },
+    "ForcedCoolingFinalResults": {
+      "type": "object",
+      "properties": {
+        "enclosureTemperature": {
+          "$ref": "#/$defs/Temperature"
+        },
+        "heatedZoneTemperature": {
+          "$ref": "#/$defs/Temperature"
+        },
+        "internalAirTemperature": {
+          "$ref": "#/$defs/Temperature"
+        },
+        "elementTemperature": {
+          "$ref": "#/$defs/Temperature"
+        },
+        "junctionTemperature": {
+          "$ref": "#/$defs/Temperature"
+        }
+      },
+      "required": [
+        "enclosureTemperature",
+        "heatedZoneTemperature",
+        "internalAirTemperature",
+        "elementTemperature",
+        "junctionTemperature"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

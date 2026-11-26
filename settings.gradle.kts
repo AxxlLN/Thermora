@@ -22,3 +22,7 @@ include(
     ":infrastructure:serialization",
     ":interfaces:cli"
 )
+
+include(":models:perforated-housing-legacy")
+
+include(":models:forced-cooling-legacy")

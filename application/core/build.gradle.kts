@@ -6,6 +6,8 @@ plugins {
 
 dependencies {
     api(project(":calculation:api"))
+    api(project(":models:perforated-housing-legacy"))
+    api(project(":models:forced-cooling-legacy"))
     api(project(":foundation:common"))
     api(project(":application:ports"))
 

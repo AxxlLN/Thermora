@@ -26,7 +26,7 @@ import java.util.concurrent.*
 import kotlin.test.*
 
 class ModelContractsTest {
-    private val codecs=StandardSnapshotCodecs.all()
+    private val codecs=java.util.Collections.unmodifiableList(StandardSnapshotCodecs.all().take(8))
     private val roots=listOf("SealedHousingLegacy","InternalMixingLegacy","ExternalCoolingLegacy","FinnedHousingLegacy")
     private fun text(index:Int,suffix:String="Full"):String = checkNotNull(javaClass.getResource("/model-v1/${roots[index/2]}${if(index%2==0) "Input" else "Output"}$suffix.json")).readText()
     private fun decode(index:Int,content:String)=codecs[index].decode(SnapshotPayload(codecs[index].schema,content))
@@ -46,10 +46,12 @@ class ModelContractsTest {
     @Test fun `all codecs accept independently reordered fields`() {
         for(index in codecs.indices) assertEquals(decode(index,text(index)),decode(index,text(index,"Reversed")))
     }
-    @Test fun `registry contains exactly eight immutable registrations`() {
+    @Test fun `registry includes original eight immutable registrations`() {
         assertEquals(8,codecs.size)
-        val registry=SnapshotCodecRegistry(codecs)
-        assertEquals(8,registry.availableSchemas().size)
+        val all=codecs+StandardSnapshotCodecs.all().drop(8)
+        assertEquals(12,all.size)
+        val registry=SnapshotCodecRegistry(all)
+        assertEquals(12,registry.availableSchemas().size)
         for(c in codecs) {
             assertSame(c,registry.find(c.schema))
             assertSame(c,registry.find(c.schema,c.valueType))

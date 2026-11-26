@@ -15,4 +15,3 @@ Thermora поддерживает концепцию двух типов физ�
 | [ARCHITECTURE.md](docs/ARCHITECTURE.md) | Архитектура системы, модули и правила зависимостей. |
 | [CALCULATION_API.md](docs/CALCULATION_API.md) | Контракты расчётных моделей, выполнения и диагностики. |
 | [DOMAIN_MODEL.md](docs/DOMAIN_MODEL.md) | Физические величины, единицы измерения и предметные модели. |
-

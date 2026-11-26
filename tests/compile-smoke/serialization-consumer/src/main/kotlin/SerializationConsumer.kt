@@ -17,6 +17,15 @@ import com.thermora.models.finnedhousing.legacy.input.FinnedHousingLegacyInput
 import com.thermora.infrastructure.serialization.finnedhousing.legacy.FinnedHousingLegacyOutputCodec
 import com.thermora.models.finnedhousing.legacy.output.FinnedHousingLegacyOutput
 
+import com.thermora.infrastructure.serialization.perforatedhousing.legacy.PerforatedHousingLegacyInputCodec
+import com.thermora.models.perforatedhousing.legacy.input.PerforatedHousingLegacyInput
+import com.thermora.infrastructure.serialization.perforatedhousing.legacy.PerforatedHousingLegacyOutputCodec
+import com.thermora.models.perforatedhousing.legacy.output.PerforatedHousingLegacyOutput
+import com.thermora.infrastructure.serialization.forcedcooling.legacy.ForcedCoolingLegacyInputCodec
+import com.thermora.models.forcedcooling.legacy.input.ForcedCoolingLegacyInput
+import com.thermora.infrastructure.serialization.forcedcooling.legacy.ForcedCoolingLegacyOutputCodec
+import com.thermora.models.forcedcooling.legacy.output.ForcedCoolingLegacyOutput
+
 val sealedhousingInput: SnapshotCodec<SealedHousingLegacyInput> = SealedHousingLegacyInputCodec()
 val sealedhousingOutput: SnapshotCodec<SealedHousingLegacyOutput> = SealedHousingLegacyOutputCodec()
 val internalmixingInput: SnapshotCodec<InternalMixingLegacyInput> = InternalMixingLegacyInputCodec()
@@ -26,3 +35,8 @@ val externalcoolingOutput: SnapshotCodec<ExternalCoolingLegacyOutput> = External
 val finnedhousingInput: SnapshotCodec<FinnedHousingLegacyInput> = FinnedHousingLegacyInputCodec()
 val finnedhousingOutput: SnapshotCodec<FinnedHousingLegacyOutput> = FinnedHousingLegacyOutputCodec()
 val standardSchemas = StandardSnapshotCodecs.all().map { it.schema }
+
+val perforatedhousingInput: SnapshotCodec<PerforatedHousingLegacyInput> = PerforatedHousingLegacyInputCodec()
+val perforatedhousingOutput: SnapshotCodec<PerforatedHousingLegacyOutput> = PerforatedHousingLegacyOutputCodec()
+val forcedcoolingInput: SnapshotCodec<ForcedCoolingLegacyInput> = ForcedCoolingLegacyInputCodec()
+val forcedcoolingOutput: SnapshotCodec<ForcedCoolingLegacyOutput> = ForcedCoolingLegacyOutputCodec()

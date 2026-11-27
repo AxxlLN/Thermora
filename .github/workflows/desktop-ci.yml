@@ -1,0 +1,56 @@
+name: Thermora Desktop CI
+
+on:
+  push:
+    branches:
+      - main
+      - feature/qt-app
+  pull_request:
+    branches:
+      - main
+      - feature/qt-app
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    name: Build and Test (Qt 6 / macOS ARM64)
+    runs-on: macos-15
+    timeout-minutes: 30
+
+    defaults:
+      run:
+        working-directory: desktop/qt-app
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: brew install qt cmake
+
+      - name: Configure CMake
+        run: |
+          cmake -S . -B cmake-build-ci \
+            -DCMAKE_PREFIX_PATH="$(brew --prefix qt)" \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DBUILD_TESTING=ON
+
+      - name: Build application and tests
+        run: cmake --build cmake-build-ci --parallel
+
+      - name: Run tests
+        run: |
+          ctest --test-dir cmake-build-ci \
+            --output-on-failure \
+            --no-tests=error
+
+      - name: Upload test reports
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: thermora-desktop-test-reports
+          path: desktop/qt-app/cmake-build-ci/Testing/
+          if-no-files-found: ignore

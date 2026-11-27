@@ -29,3 +29,9 @@ target_link_libraries(thermora-desktop
         Qt6::Gui
         Qt6::Widgets
 )
+
+include(CTest)
+
+if(BUILD_TESTING)
+    add_subdirectory(tests)
+endif()

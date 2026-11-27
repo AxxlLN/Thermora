@@ -1,12 +1,16 @@
-name: Thermora CI
+name: Thermora JVM CI
 
 on:
   push:
     branches:
       - main
+      - feature/cli
+      - feature/qt-app
   pull_request:
     branches:
       - main
+      - feature/cli
+      - feature/qt-app
   workflow_dispatch:
 
 permissions:
@@ -16,6 +20,7 @@ jobs:
   build-and-test:
     name: Build and Test (JDK 21)
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
       - name: Checkout repository

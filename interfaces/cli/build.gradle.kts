@@ -11,6 +11,9 @@ repositories {
 }
 
 dependencies {
+    implementation(project(":application:core"))
+    implementation(project(":infrastructure:serialization"))
+
     testImplementation(kotlin("test"))
 }
 
